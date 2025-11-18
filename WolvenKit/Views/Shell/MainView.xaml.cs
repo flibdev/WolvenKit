@@ -69,7 +69,7 @@ namespace WolvenKit.Views.Shell
                 Interactions.ShowPopupWithWeblink = ShowConfirmationWithLink;
                 Interactions.ShowDeleteOrDuplicateComponentDialogue = (args) =>
                 {
-                    var dialog = new DeleteOrDuplicateComponentDialog(args.Item1, args.Item2);
+                    var dialog = new DeleteOrDuplicateComponentDialog(args.componentNames, args.isDeleting);
                     if (dialog.ViewModel is not null && dialog.ShowDialog(this) == true)
                     {
                         return dialog.ViewModel;
@@ -161,6 +161,28 @@ namespace WolvenKit.Views.Shell
                 Interactions.ShowGenerateInkatlasDialogue = (activeProject) =>
                 {
                     var dialog = new AddInkatlasDialog(activeProject);
+                    if (dialog.ShowDialog() != true)
+                    {
+                        return null;
+                    }
+
+                    return dialog.ViewModel;
+                };
+
+                Interactions.ShowGeneratePropFileModel = (activeProject) =>
+                {
+                    var dialog = new AddPropFileDialog(activeProject);
+                    if (dialog.ShowDialog() != true)
+                    {
+                        return null;
+                    }
+
+                    return dialog.ViewModel;
+                };
+                
+                Interactions.ShowCopyMeshAppearancesDialogue = (options) =>
+                {
+                    var dialog = new CopyMeshAppearancesDialog(options);
                     if (dialog.ShowDialog() != true)
                     {
                         return null;
@@ -280,20 +302,20 @@ namespace WolvenKit.Views.Shell
 
         /// <inheritdoc cref="Interactions.ShowPopupWithWeblinkAsync"/>
         private static WMessageBoxResult ShowConfirmationWithLink(
-            (string, string, string, string, WMessageBoxImage) input)
+            (string text, string title, string weblink, string buttonText, WMessageBoxImage icon) input)
         {
             MessageBoxModel messageBox = new()
             {
-                Text = input.Item1,
-                Caption = input.Item2,
-                Buttons = [MessageBoxButtons.Custom(input.Item4), MessageBoxButtons.Ok()],
-                Icon = GetAdonisImage(input.Item5),
+                Text = input.text,
+                Caption = input.title,
+                Buttons = [MessageBoxButtons.Custom(input.buttonText), MessageBoxButtons.Ok()],
+                Icon = GetAdonisImage(input.icon),
             };
 
             var ret = AdonisUI.Controls.MessageBox.Show(Application.Current.MainWindow, messageBox);
-            if (ret == MessageBoxResult.Custom && input.Item3 is string link && !string.IsNullOrEmpty(link))
+            if (ret == MessageBoxResult.Custom && !string.IsNullOrEmpty(input.weblink))
             {
-                Process.Start(new ProcessStartInfo { FileName = link, UseShellExecute = true });
+                Process.Start(new ProcessStartInfo { FileName = input.weblink, UseShellExecute = true });
             }
 
             return (WMessageBoxResult)ret;

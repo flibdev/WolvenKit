@@ -952,6 +952,7 @@ public class DocumentTools
             ret.AddRange(FilterByType(cvmResolvedData, cachedList));
         }
         else if (materialPath.EndsWith(".mi") &&
+                 !ret.Contains(materialPath) &&
                  ReadCr2WFromRelativePath(materialPath) is { RootChunk: CMaterialInstance mi } &&
                  mi.BaseMaterial.DepotPath.GetResolvedText() is string baseMaterial)
         {
@@ -1278,23 +1279,29 @@ public class DocumentTools
         return wasChanged;
     }
 
-    public bool CopyMeshMaterials(string sourcePath, string destPath)
+    public bool CopyMeshMaterials(string? sourcePath, string destPath, bool? append)
     {
-        if (sourcePath == destPath || destPath.EndsWith(sourcePath))
-        {
-            return true;
-        }
-
         if (_projectManager.ActiveProject is not { } activeProject)
         {
             return false;
         }
 
-        List<string> meshPaths = [sourcePath];
-        if (sourcePath == SelectDropdownEntryDialogViewModel.ButtonClickResult)
+        List<string> meshPaths;
+        if (string.IsNullOrEmpty(sourcePath))
         {
             meshPaths = FindPatchMeshPaths(activeProject.GetRelativePath(destPath));
+            sourcePath ??= "";
         }
+        else
+        {
+            if (sourcePath == destPath || destPath.EndsWith(sourcePath))
+            {
+                return true;
+            }
+
+            meshPaths = [sourcePath];
+        }
+
 
         var destCr2W = GetCr2W(destPath) ??
                        throw new InvalidDataException($"target file {destPath} not found. Can't copy...");
@@ -1305,7 +1312,10 @@ public class DocumentTools
             throw new InvalidDataException($"target file {destPath} is not a valid mesh.");
         }
 
-        ClearMeshMaterials(destCr2W);
+        if (append != true)
+        {
+            ClearMeshMaterials(destCr2W);
+        }
 
         if (!meshPaths.Select(sourceMeshPath =>
                 AppendMeshMaterials(GetCr2W(sourceMeshPath), destCr2W, sourcePath, destPath)).Contains(true))

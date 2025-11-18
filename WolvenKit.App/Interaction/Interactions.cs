@@ -137,7 +137,9 @@ public static class Interactions
         = _ => throw new NotImplementedException();
 
     /// <inheritdoc cref="ShowPopupWithWeblinkAsync"/>
-    public static Func<(string, string, string, string, WMessageBoxImage), WMessageBoxResult> ShowPopupWithWeblink
+    public static
+        Func<(string text, string title, string link, string buttonText, WMessageBoxImage image), WMessageBoxResult>
+        ShowPopupWithWeblink
     {
         get;
         set;
@@ -248,6 +250,14 @@ public static class Interactions
 
 
     /// <summary>
+    /// Shows dialogue to copy mesh materials/appearances.
+    /// </summary>
+    public static Func<List<string>,
+        CopyMeshAppearancesDialogViewModel?> ShowCopyMeshAppearancesDialogue { get; set; } =
+        _ => throw new NotImplementedException();
+
+
+    /// <summary>
     /// Shows script settings overlay
     /// </summary>
     public static Func<ScriptSettingsDictionary, bool> ShowScriptSettingsView { get; set; } = _ => throw new NotImplementedException();
@@ -256,6 +266,12 @@ public static class Interactions
     /// Shows dialogue to generate .inkatlas file. Complex logic inside dialogue model.
     /// </summary>
     public static Func<Cp77Project, AddInkatlasDialogViewModel> ShowGenerateInkatlasDialogue { get; set; } =
+        _ => throw new NotImplementedException();
+
+    /// <summary>
+    /// Shows dialogue to generate .inkatlas file. Complex logic inside dialogue model.
+    /// </summary>
+    public static Func<Cp77Project, AddPropFileDialogViewModel> ShowGeneratePropFileModel { get; set; } =
         _ => throw new NotImplementedException();
 
     /// <summary>
