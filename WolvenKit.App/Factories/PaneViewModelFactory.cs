@@ -27,6 +27,7 @@ public class PaneViewModelFactory : IPaneViewModelFactory
     private readonly INotificationService _notificationService;
     private readonly IAppArchiveManager _archiveManager;
     private readonly Red4ParserService _parserService;
+    private readonly IShaderCacheService _shaderCacheService;
     private readonly ITweakDBService _tweakDbService;
     private readonly ILocKeyService _locKeyService;
     private readonly ImportExportHelper _importExportHelper;
@@ -48,6 +49,7 @@ public class PaneViewModelFactory : IPaneViewModelFactory
         IAppArchiveManager archiveManager,
         IChunkViewmodelFactory chunkViewmodelFactory,
         Red4ParserService parserService,
+        IShaderCacheService shaderCacheService,
         ITweakDBService tweakDbService,
         ILocKeyService locKeyService,
         PropertiesViewModel propertiesViewModel,
@@ -68,6 +70,7 @@ public class PaneViewModelFactory : IPaneViewModelFactory
         _archiveManager = archiveManager;
         _chunkViewmodelFactory = chunkViewmodelFactory;
         _parserService = parserService;
+        _shaderCacheService = shaderCacheService;
         _tweakDbService = tweakDbService;
         _locKeyService = locKeyService;
         _propertiesViewModel = propertiesViewModel;
@@ -94,4 +97,6 @@ public class PaneViewModelFactory : IPaneViewModelFactory
     public ExportViewModel ExportViewModel(AppViewModel appViewModel) => new(appViewModel, _archiveManager, _notificationService, _settingsManager, _loggerService, _projectManager, _progressService, _importExportHelper);
 
     public HashToolViewModel HashToolViewModel() => new HashToolViewModel();
+
+    public ShaderCacheViewModel ShaderCacheViewModel() => new(_settingsManager, _shaderCacheService, _loggerService);
 }

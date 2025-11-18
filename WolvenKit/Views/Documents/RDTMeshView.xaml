@@ -524,8 +524,6 @@
                 </Grid>
 
                 <!-- Button Click="ReloadModels" Content="Zoom to Extents" / -->
-
-                <!-- Button Command="{Binding ExtractShadersCommand}" Content="Export Shaders" / -->
             </StackPanel>
 
             <!--syncfusion:SfTreeGrid

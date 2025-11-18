@@ -210,6 +210,10 @@ public partial class MenuBarView : ReactiveUserControl<MenuBarViewModel>
                     viewModel => viewModel.MainViewModel.ShowHashToolCommand,
                     view => view.MenuItemShowHashTool)
                 .DisposeWith(disposables);
+            this.BindCommand(ViewModel,
+                    viewModel => viewModel.MainViewModel.ShowShaderCacheCommand,
+                    view => view.MenuItemShowShaderCacheTool)
+                .DisposeWith(disposables);
 
             // Game
             this.BindCommand(ViewModel,

@@ -377,6 +377,9 @@ public partial class AppViewModel : ObservableObject/*, IAppViewModel*/
                 DockedViews.Add(vm);
                 return true;
             }
+            case EDockedViews.ShaderCacheViewModel:
+                DockedViews.Add(_paneViewModelFactory.ShaderCacheViewModel());
+                return true;
             default:
                 break;
         }
@@ -1788,6 +1791,14 @@ public partial class AppViewModel : ObservableObject/*, IAppViewModel*/
         DockedViews.Add(vm);
     }
 
+    [RelayCommand]
+    private void ShowShaderCache()
+    {
+        var vm = _paneViewModelFactory.ShaderCacheViewModel();
+        vm.State = DockState.Float;
+        DockedViews.Add(vm);
+    }
+
 
     [RelayCommand]
     private void OpenExternalLink(string? link)
@@ -1821,6 +1832,7 @@ public partial class AppViewModel : ObservableObject/*, IAppViewModel*/
             Type t when t == typeof(AssetBrowserViewModel) => (T)(_paneViewModelFactory.AssetBrowserViewModel(this) as IDockElement),
             Type t when t == typeof(TweakBrowserViewModel) => (T)(_paneViewModelFactory.TweakBrowserViewModel(this) as IDockElement),
             Type t when t == typeof(LocKeyBrowserViewModel) => (T)(_paneViewModelFactory.LocKeyBrowserViewModel() as IDockElement),
+            Type t when t == typeof(ShaderCacheViewModel) => (T)(_paneViewModelFactory.ShaderCacheViewModel() as IDockElement),
 
             Type t when t == typeof(ImportViewModel) => (T)(_paneViewModelFactory.ImportViewModel(this) as IDockElement),
             Type t when t == typeof(ExportViewModel) => (T)(_paneViewModelFactory.ExportViewModel(this) as IDockElement),
@@ -2637,6 +2649,9 @@ public partial class AppViewModel : ObservableObject/*, IAppViewModel*/
 
         // TweakBrowserView
         resources["WolvenKitTweakBrowserTabColumnWidth"] = new GridLength(300).Mul(_uiScalePercentage).Round();
+
+        // ShaderCacheView
+        resources["WolvenKitShaderCacheTabColumnWidth"] = new GridLength(300).Mul(_uiScalePercentage).Round();
 
         // RedTreeView
         resources["WolvenKitRedTreeIconColumnWidth"] = new GridLength(20).Mul(_uiScalePercentage).Round();

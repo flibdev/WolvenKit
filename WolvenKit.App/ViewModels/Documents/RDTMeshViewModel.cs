@@ -369,17 +369,6 @@ public partial class RDTMeshViewModel : RedDocumentTabViewModel
         }
     }
 
-    [RelayCommand]
-    private void ExtractShaders()
-    {
-        if (_settingsManager.CP77ExecutablePath is null)
-        {
-            return;
-        }
-
-        ShaderCacheReader.ExtractShaders(new FileInfo(_settingsManager.CP77ExecutablePath), ISettingsManager.GetTemp_OBJPath());
-    }
-
     private bool _isCollisionRendered = true;
 
     [RelayCommand]

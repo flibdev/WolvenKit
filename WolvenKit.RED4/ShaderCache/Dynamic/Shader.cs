@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using WolvenKit.RED4.ShaderCache.Common;
 
 namespace WolvenKit.RED4.ShaderCache.Dynamic;
 public class Shader : IShader

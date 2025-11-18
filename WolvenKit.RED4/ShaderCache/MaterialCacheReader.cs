@@ -1,16 +1,20 @@
 using System.Collections.Generic;
 using System.Text;
+using WolvenKit.Core.Helpers;
 using WolvenKit.Core.Extensions;
 using WolvenKit.RED4.IO;
+using WolvenKit.RED4.ShaderCache.Common;
 using WolvenKit.RED4.ShaderCache.Dynamic;
 
 namespace WolvenKit.RED4.ShaderCache;
-public class MaterialCacheReader : Red4Reader, ICacheReader
+public class MaterialCacheReader : ICacheReader
 {
-    public MaterialCacheReader(Stream input) : base(input) { }
-    public MaterialCacheReader(Stream input, Encoding encoding) : base(input, encoding) { }
-    public MaterialCacheReader(Stream input, Encoding encoding, bool leaveOpen) : base(input, encoding, leaveOpen) { }
-    public MaterialCacheReader(BinaryReader reader) : base(reader) { }
+    private readonly BinaryReader _reader;
+
+    public MaterialCacheReader(BinaryReader reader)
+    {
+        _reader = reader;
+    }
 
     // 53 48 44 52 = 'SHDR'
     private static readonly uint s_magic = 0x53484452;
@@ -22,23 +26,35 @@ public class MaterialCacheReader : Red4Reader, ICacheReader
         return reader.ReadUInt32() == s_magic && reader.ReadUInt32() == s_version;
     }
 
-
-    public ICacheReader.ReadState TryReadFile(out ICache? cache)
+    public ICache ReadFile()
     {
-        BaseStream.Seek(-0x70, SeekOrigin.End);
-        var footer = BaseStream.ReadStruct<FooterBlock>();
-        cache = null;
+        _reader.BaseStream.Seek(-0x70, SeekOrigin.End);
+        var footer = _reader.BaseStream.ReadStruct<FooterBlock>();
 
         if (footer.Magic != s_magic)
-        {   
-            return ICacheReader.ReadState.UnknownMagic;
+        {
+            throw new InvalidDataException("Unknown magic number");
         }
 
         if (footer.Version != s_version)
         {
-            return ICacheReader.ReadState.UnsupportedVersion;
+            throw new InvalidDataException("Unsupported version number");
         }
 
+        var metadata = new CacheMetadata
+        {
+            FileSize = _reader.BaseStream.Length,
+            Chunks =
+            [
+                new MetadataChunk { Type = "Shaders", Count = footer.ShaderCount, Size = footer.ShaderBlockSize },
+                new MetadataChunk { Type = "Techniques", Count = footer.TechniqueCount, Size = footer.TechniqueBlockSize },
+                new MetadataChunk { Type = "Parameters", Count = footer.ParamCount, Size = footer.ParamBlockSize },
+                new MetadataChunk { Type = "Includes", Count = footer.IncludesCount, Size = footer.IncludesBlockSize },
+                new MetadataChunk { Type = "Timestamps", Count = 0, Size = footer.TimestampBlockSize }
+            ]
+        };
+
+        // Read file blocks
         var cShaders = ReadCompiledShaders(footer.ShaderCount, 0, footer.ShaderBlockSize);
         var cTechs = ReadCompiledTechniques(footer.TechniqueCount, footer.OffsetToTechniques, footer.TechniqueBlockSize);
         var paramMap = ReadShaderParamsMap(footer.ParamCount, footer.OffsetToParams, footer.ParamBlockSize);
@@ -70,23 +86,18 @@ public class MaterialCacheReader : Red4Reader, ICacheReader
         {
             var matHash = (uint)(tech.Hash >> 32);
             var firstSpace = tech.Name.IndexOf(' ');
-            var matName = tech.Name.Substring(0, firstSpace);
-            var techStr = tech.Name.Substring(firstSpace + 1);
+            var matName = tech.Name[..firstSpace];
+            var techStr = tech.Name[(firstSpace + 1)..];
 
-            Material? mat;
-            if (materials.ContainsKey(matHash))
-            {
-                mat = materials[matHash];
-            }
-            else
+            if (materials.TryGetValue(matHash, out var mat) == false)
             {
                 mat = new Material(matName);
                 materials.Add(matHash, mat);
             }
 
-            if (!TechniqueDescExt.TryParse(techStr, out TechniqueDesc techDesc))
+            if (!TechniqueDescExt.TryParse(techStr, out var techDesc))
             {
-                throw new Exception($"MaterialCacheReader: Unable to parse TechniqueDesc '{techStr}'");
+                throw new InvalidDataException($"Unable to parse TechniqueDesc '{techStr}'");
             }
 
             mat.AddTechnique(new MaterialTechnique
@@ -99,24 +110,18 @@ public class MaterialCacheReader : Red4Reader, ICacheReader
             });
         }
 
-        cache = new MaterialCache()
-        {
-            Shaders = shaders,
-            Materials = materials
-        };
-
-        return ICacheReader.ReadState.Success;
+        return new MaterialCache(shaders, materials, metadata);
     }
 
     //--------------------------------------------------------------------------
     // Common
 
-    private static void ThrowIfMismatch(string section, long position, long offset, ulong size)
+    private void ThrowIfMismatch(string section, long offset, ulong size)
     {
         var addr = offset + (long)size;
-        if (position != addr)
+        if (_reader.BaseStream.Position != addr)
         {
-            throw new Exception($"MaterialCacheReader: {section} block size mismatch - expected {addr}, found {position}");
+            throw new InvalidDataException($"{section} block size mismatch - expected {addr}, found {_reader.BaseStream.Position}");
         }
     }
 
@@ -125,7 +130,7 @@ public class MaterialCacheReader : Red4Reader, ICacheReader
 
     private List<CompiledShader> ReadCompiledShaders(uint count, long offset, ulong size)
     {
-        BaseStream.Seek(offset, SeekOrigin.Begin);
+        _reader.BaseStream.Seek(offset, SeekOrigin.Begin);
         var shaders = new List<CompiledShader>();
 
         for (var i = 0; i < count; i++)
@@ -133,7 +138,7 @@ public class MaterialCacheReader : Red4Reader, ICacheReader
             shaders.Add(ReadCompiledShader());
         }
 
-        ThrowIfMismatch("CompiledShader", Position, offset, size);
+        ThrowIfMismatch("CompiledShader", offset, size);
 
         return shaders;
     }
@@ -145,7 +150,7 @@ public class MaterialCacheReader : Red4Reader, ICacheReader
         cs.ParamsHash = _reader.ReadUInt64();
         cs.Size = _reader.ReadUInt32();
         // No point storing the actual compiled data, will just cache the file address and seek past
-        cs.Address = Position;
+        cs.Address = _reader.BaseStream.Position;
         _reader.BaseStream.Seek(cs.Size, SeekOrigin.Current);
 
         return cs;
@@ -156,7 +161,7 @@ public class MaterialCacheReader : Red4Reader, ICacheReader
 
     private List<CompiledTechnique> ReadCompiledTechniques(uint count, long offset, ulong size)
     {
-        BaseStream.Seek(offset, SeekOrigin.Begin);
+        _reader.BaseStream.Seek(offset, SeekOrigin.Begin);
         var techs = new List<CompiledTechnique>();
 
         for (var i = 0; i < count; i++)
@@ -164,7 +169,7 @@ public class MaterialCacheReader : Red4Reader, ICacheReader
             techs.Add(ReadCompiledTechnique());
         }
 
-        ThrowIfMismatch("CompiledTechnique", Position, offset, size);
+        ThrowIfMismatch("CompiledTechnique", offset, size);
 
         return techs;
     }
@@ -197,7 +202,7 @@ public class MaterialCacheReader : Red4Reader, ICacheReader
         var vsCount = _reader.ReadUInt32();
         for (var v = 0; v < vsCount; v++)
         {
-            var vss = BaseStream.ReadStruct<SamplerState>();
+            var vss = _reader.BaseStream.ReadStruct<SamplerState>();
             ct.VSSamplers.Add(vss.ToREDClass());
         }
 
@@ -205,7 +210,7 @@ public class MaterialCacheReader : Red4Reader, ICacheReader
         var psCount = _reader.ReadUInt32();
         for (var p = 0; p < psCount; p++)
         {
-            var pss = BaseStream.ReadStruct<SamplerState>();
+            var pss = _reader.BaseStream.ReadStruct<SamplerState>();
             ct.VSSamplers.Add(pss.ToREDClass());
         }
 
@@ -217,7 +222,7 @@ public class MaterialCacheReader : Red4Reader, ICacheReader
 
     private Dictionary<ulong, ShaderParams> ReadShaderParamsMap(uint count, long offset, ulong size)
     {
-        BaseStream.Seek(offset, SeekOrigin.Begin);
+        _reader.BaseStream.Seek(offset, SeekOrigin.Begin);
         var spm = new Dictionary<ulong, ShaderParams>();
 
         for (var i = 0; i < count; i++)
@@ -226,7 +231,7 @@ public class MaterialCacheReader : Red4Reader, ICacheReader
             spm.Add(sp.Hash, sp);
         }
 
-        ThrowIfMismatch("ShaderParams", Position, offset, size);
+        ThrowIfMismatch("ShaderParams", offset, size);
 
         return spm;
     }

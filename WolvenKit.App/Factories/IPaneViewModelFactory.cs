@@ -17,4 +17,5 @@ public interface IPaneViewModelFactory
     public ImportViewModel ImportViewModel(AppViewModel appViewModel);
     public ExportViewModel ExportViewModel(AppViewModel appViewModel);
     public HashToolViewModel HashToolViewModel();
+    public ShaderCacheViewModel ShaderCacheViewModel();
 }

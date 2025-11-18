@@ -785,6 +785,21 @@
                 <Separator />
 
                 <MenuItem
+                    x:Name="MenuItemShowShaderCacheTool"
+                    Margin="{DynamicResource WolvenKitMenuBarItemMarginHorizontal}"
+                    Header="Shader Cache Tool">
+                    <MenuItem.Icon>
+                        <local:IconBox
+                            IconPack="Material"
+                            Kind="CircleOpacity"
+                            Size="{DynamicResource WolvenKitIconTiny}"
+                            Foreground="{StaticResource WolvenKitCyan}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <Separator />
+
+                <MenuItem
                     x:Name="ToolbarSettingsButton"
                     Margin="{DynamicResource WolvenKitMenuBarItemMarginHorizontal}"
                     Header="Settings">

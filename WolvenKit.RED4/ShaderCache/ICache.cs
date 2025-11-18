@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WolvenKit.RED4.ShaderCache.Common;
 
 namespace WolvenKit.RED4.ShaderCache;
 public interface ICache
 {
-    enum Type
+    enum CacheType
     {
         Static,
         Dynamic
     }
 
-    Type GetType { get; }
+    CacheType Type { get; }
+
+    CacheMetadata Metadata { get; }
 }

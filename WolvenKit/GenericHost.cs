@@ -68,6 +68,7 @@ namespace WolvenKit
                     services.AddSingleton<ILoggerService, SerilogWrapper>();                                    // can this be transient?
                     services.AddSingleton<ITweakDBService, TweakDBService>();
                     services.AddSingleton<IUpdateService, UpdateService>();
+                    services.AddTransient<IShaderCacheService, ShaderCacheService>();
 
                     services.AddSingleton<ArchiveXlItemService>();
 
@@ -190,6 +191,9 @@ namespace WolvenKit
 
                     services.AddTransient<LocKeyBrowserViewModel>();
                     services.AddTransient<IViewFor<LocKeyBrowserViewModel>, LocKeyBrowserView>();
+
+                    services.AddTransient<ShaderCacheViewModel>();
+                    services.AddTransient<IViewFor<ShaderCacheViewModel>, ShaderCacheView>();
 
                     #endregion
 

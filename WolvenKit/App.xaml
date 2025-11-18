@@ -78,6 +78,12 @@
                             <tools:HashToolView />
                         </Grid>
                     </DataTemplate>
+                    <DataTemplate DataType="{x:Type toolvm:ShaderCacheViewModel}">
+                        <Grid>
+                            <tools:ShaderCacheView />
+                        </Grid>
+                    </DataTemplate>
+
 
                 </ResourceDictionary>
 

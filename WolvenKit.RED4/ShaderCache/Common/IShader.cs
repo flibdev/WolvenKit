@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WolvenKit.RED4.ShaderCache;
+namespace WolvenKit.RED4.ShaderCache.Common;
 public interface IShader
 {
     ulong Hash { get; }

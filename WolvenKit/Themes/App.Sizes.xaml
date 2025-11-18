@@ -186,6 +186,9 @@
     <!-- TweakBrowserView -->
     <GridLength x:Key="WolvenKitTweakBrowserTabColumnWidth">300</GridLength>
 
+    <!-- ShaderCacheView -->
+    <GridLength x:Key="WolvenKitShaderCacheTabColumnWidth">300</GridLength>
+
     <!-- RedTreeView -->
     <GridLength x:Key="WolvenKitRedTreeIconColumnWidth">20</GridLength>
     <GridLength x:Key="WolvenKitRedTreeArrayColumnWidthLvl0">218</GridLength>
