@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using ReactiveUI;
 using Syncfusion.Windows.PropertyGrid;
 using WolvenKit.App.ViewModels.Tools;
+using WolvenKit.App.ViewModels.Tools.ShaderCache;
 
 namespace WolvenKit.Views.Tools
 {
@@ -28,6 +29,22 @@ namespace WolvenKit.Views.Tools
         public ShaderCacheView()
         {
             InitializeComponent();
+        }
+
+        private void MatPropGrid_AutoGeneratingPropertyGridItem(object sender, AutoGeneratingPropertyGridItemEventArgs e)
+        {
+            switch (e.DisplayName)
+            {
+                case nameof(ReactiveObject.Changed):
+                case nameof(ReactiveObject.Changing):
+                case nameof(ReactiveObject.ThrownExceptions):
+                case nameof(MaterialViewModel.Techniques):
+                    e.Cancel = true;
+                    break;
+                default:
+                    break;
+            }
+            e.ReadOnly = true;
         }
     }
 }

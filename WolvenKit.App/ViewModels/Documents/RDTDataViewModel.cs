@@ -101,6 +101,7 @@ public partial class RDTDataViewModel : RedDocumentTabViewModel
             appearanceAppearanceResource => RedDocumentItemType.App,
             entEntityTemplate => RedDocumentItemType.Ent,
             CMaterialInstance => RedDocumentItemType.Mi,
+            CMaterialTemplate => RedDocumentItemType.Mt,
             _ => base.GetContentType()
         };
     }

@@ -68,8 +68,7 @@ namespace WolvenKit
                     services.AddSingleton<ILoggerService, SerilogWrapper>();                                    // can this be transient?
                     services.AddSingleton<ITweakDBService, TweakDBService>();
                     services.AddSingleton<IUpdateService, UpdateService>();
-                    services.AddTransient<IShaderCacheService, ShaderCacheService>();
-
+                    
                     services.AddSingleton<ArchiveXlItemService>();
 
                     // scripting
@@ -91,6 +90,7 @@ namespace WolvenKit
                     services.AddTransient<IModTools, ModTools>();
                     services.AddTransient<MockGameController>();
                     services.AddTransient<RED4Controller>();
+                    services.AddTransient<IShaderCacheService, ShaderCacheService>();
                     services.AddTransient<IGameControllerFactory, GameControllerFactory>();
                     services.AddSingleton<IPluginService, PluginService>();
                     services.AddSingleton<IModifierViewStateService, ModifierViewStateService>();

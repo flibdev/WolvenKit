@@ -1,4 +1,4 @@
-﻿using WolvenKit.App.Controllers;
+using WolvenKit.App.Controllers;
 using WolvenKit.App.Helpers;
 using WolvenKit.App.Services;
 using WolvenKit.App.ViewModels.Exporters;
@@ -98,5 +98,5 @@ public class PaneViewModelFactory : IPaneViewModelFactory
 
     public HashToolViewModel HashToolViewModel() => new HashToolViewModel();
 
-    public ShaderCacheViewModel ShaderCacheViewModel() => new(_settingsManager, _shaderCacheService, _loggerService);
+    public ShaderCacheViewModel ShaderCacheViewModel(AppViewModel appViewModel) => new(_settingsManager, _shaderCacheService, _archiveManager, appViewModel, _loggerService);
 }

@@ -1,4 +1,4 @@
-﻿using WolvenKit.App.Models.Docking;
+using WolvenKit.App.Models.Docking;
 using WolvenKit.App.ViewModels.Exporters;
 using WolvenKit.App.ViewModels.Importers;
 using WolvenKit.App.ViewModels.Shell;
@@ -17,5 +17,5 @@ public interface IPaneViewModelFactory
     public ImportViewModel ImportViewModel(AppViewModel appViewModel);
     public ExportViewModel ExportViewModel(AppViewModel appViewModel);
     public HashToolViewModel HashToolViewModel();
-    public ShaderCacheViewModel ShaderCacheViewModel();
+    public ShaderCacheViewModel ShaderCacheViewModel(AppViewModel appViewModel);
 }

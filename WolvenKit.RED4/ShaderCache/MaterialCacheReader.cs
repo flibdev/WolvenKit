@@ -41,6 +41,7 @@ public class MaterialCacheReader : ICacheReader
             throw new InvalidDataException("Unsupported version number");
         }
 
+        // Log metadata info from footer
         var metadata = new CacheMetadata
         {
             FileSize = _reader.BaseStream.Length,
@@ -50,7 +51,8 @@ public class MaterialCacheReader : ICacheReader
                 new MetadataChunk { Type = "Techniques", Count = footer.TechniqueCount, Size = footer.TechniqueBlockSize },
                 new MetadataChunk { Type = "Parameters", Count = footer.ParamCount, Size = footer.ParamBlockSize },
                 new MetadataChunk { Type = "Includes", Count = footer.IncludesCount, Size = footer.IncludesBlockSize },
-                new MetadataChunk { Type = "Timestamps", Count = 0, Size = footer.TimestampBlockSize }
+                // Timestamp doesn't include totals in the footer, but they're fixed-size and easy to calculate
+                new MetadataChunk { Type = "Timestamps", Count = (uint)(footer.TimestampBlockSize - 4) / 12, Size = footer.TimestampBlockSize }
             ]
         };
 
@@ -84,7 +86,12 @@ public class MaterialCacheReader : ICacheReader
         var materials = new Dictionary<uint, Material>();
         foreach (var tech in cTechs)
         {
+            // Material hash is stored in the upper 32bits of the technique hash
             var matHash = (uint)(tech.Hash >> 32);
+            // Material name is included at the beginning of the compiled technique
+            // string, but isn't 100% consistent with the hash method
+            // (because the hash is calculated from the CName within the material
+            // resource file but the name here is from the resource filename)
             var firstSpace = tech.Name.IndexOf(' ');
             var matName = tech.Name[..firstSpace];
             var techStr = tech.Name[(firstSpace + 1)..];

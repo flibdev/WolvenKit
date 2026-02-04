@@ -33,6 +33,7 @@ public enum RedDocumentItemType
     Json,
     Sector,
     Physmatlib,
+    Mt,
     Other,
     None,
 }

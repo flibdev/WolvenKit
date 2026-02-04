@@ -7,6 +7,7 @@ public class Material
     public string Name { get; set; }
     public List<MaterialTechnique> Techniques { get; } = [];
     public HashSet<Enums.EMaterialVertexFactory> VertexFactories { get; } = [];
+    public ulong VertexFactoryMask = 0;
     public HashSet<string> Passes { get; } = [];
 
     public Material(string name)
@@ -17,6 +18,7 @@ public class Material
     {
         Techniques.Add(tech);
         VertexFactories.Add(tech.Desc.VertexFactory);
+        VertexFactoryMask |= (ulong)tech.Desc.VertexFactory;
         Passes.Add(tech.Desc.Pass);
     }
 }

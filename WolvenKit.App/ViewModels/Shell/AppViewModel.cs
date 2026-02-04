@@ -378,7 +378,7 @@ public partial class AppViewModel : ObservableObject/*, IAppViewModel*/
                 return true;
             }
             case EDockedViews.ShaderCacheViewModel:
-                DockedViews.Add(_paneViewModelFactory.ShaderCacheViewModel());
+                DockedViews.Add(_paneViewModelFactory.ShaderCacheViewModel(this));
                 return true;
             default:
                 break;
@@ -1793,7 +1793,7 @@ public partial class AppViewModel : ObservableObject/*, IAppViewModel*/
     [RelayCommand]
     private void ShowShaderCache()
     {
-        var vm = _paneViewModelFactory.ShaderCacheViewModel();
+        var vm = _paneViewModelFactory.ShaderCacheViewModel(this);
         vm.State = DockState.Float;
         DockedViews.Add(vm);
     }
@@ -1831,7 +1831,7 @@ public partial class AppViewModel : ObservableObject/*, IAppViewModel*/
             Type t when t == typeof(AssetBrowserViewModel) => (T)(_paneViewModelFactory.AssetBrowserViewModel(this) as IDockElement),
             Type t when t == typeof(TweakBrowserViewModel) => (T)(_paneViewModelFactory.TweakBrowserViewModel(this) as IDockElement),
             Type t when t == typeof(LocKeyBrowserViewModel) => (T)(_paneViewModelFactory.LocKeyBrowserViewModel() as IDockElement),
-            Type t when t == typeof(ShaderCacheViewModel) => (T)(_paneViewModelFactory.ShaderCacheViewModel() as IDockElement),
+            Type t when t == typeof(ShaderCacheViewModel) => (T)(_paneViewModelFactory.ShaderCacheViewModel(this) as IDockElement),
 
             Type t when t == typeof(ImportViewModel) => (T)(_paneViewModelFactory.ImportViewModel(this) as IDockElement),
             Type t when t == typeof(ExportViewModel) => (T)(_paneViewModelFactory.ExportViewModel(this) as IDockElement),

@@ -19,6 +19,7 @@ using WolvenKit.Core.Services;
 using WolvenKit.Interfaces.Extensions;
 using WolvenKit.RED4.Archive.CR2W;
 using WolvenKit.RED4.Types;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WolvenKit.App.ViewModels.Documents;
 
@@ -106,7 +107,8 @@ public partial class RedDocumentViewToolbarModel : ObservableObject
                 or RedDocumentItemType.Questphase
                 or RedDocumentItemType.Scene
                 or RedDocumentItemType.Physmatlib
-                or RedDocumentItemType.Ent => true,
+                or RedDocumentItemType.Ent
+                or RedDocumentItemType.Mt => true,
             RedDocumentItemType.Xbm
                 or RedDocumentItemType.Mlmask
                 or RedDocumentItemType.Mlsetup
@@ -188,6 +190,7 @@ public partial class RedDocumentViewToolbarModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(RegenerateIdsCommand))]
     [NotifyCanExecuteChangedFor(nameof(CopyMaterialFromMeshCommand))]
     [NotifyCanExecuteChangedFor(nameof(CopyMaterialToMeshesCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CalculateParamBlockSizesCommand))]
     [ObservableProperty]
     private RedDocumentItemType _contentType;
 
@@ -741,6 +744,26 @@ public partial class RedDocumentViewToolbarModel : ObservableObject
 
     #endregion
 
+    #region materialTemplateFile
+
+    private bool IsMaterialTemplate() => ContentType is RedDocumentItemType.Mt;
+
+    [RelayCommand(CanExecute = nameof(IsMaterialTemplate))]
+    private void CalculateParamBlockSizes()
+    {
+        if (RootChunk?.ResolvedData is not CMaterialTemplate matTemplate)
+        {
+            return;
+        }
+
+        if (RootChunk.CalculateParameterBlockSizes(matTemplate))
+        {
+            RootChunk.RecalculateProperties();
+            RootChunk.Tab?.Parent?.SetIsDirty(true);
+        }
+    }
+
+    #endregion
 
     private bool CanDeleteChunkMaterialByIndex() => RootChunk?.ResolvedData is CMesh mesh && mesh.Appearances.Count > 0;
 

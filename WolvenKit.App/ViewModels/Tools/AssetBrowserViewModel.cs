@@ -707,10 +707,15 @@ public partial class AssetBrowserViewModel : ToolViewModel
     /// <param name="file"></param>
     public void ShowFile(FileSystemModel file)
     {
+        ShowFileByHash(file.Hash);
+    }
+
+    public void ShowFileByHash(ulong hash)
+    {
         _archiveManager.Archives
             .Connect()
             .TransformMany(x => x.Files.Values, y => y.Key)
-            .Filter(x => x.Key == file.Hash)
+            .Filter(x => x.Key == hash)
             .Transform(x => new RedFileViewModel(x))
             .Bind(out var list)
             .Subscribe()
@@ -725,7 +730,6 @@ public partial class AssetBrowserViewModel : ToolViewModel
         {
             _notificationService.Warning("File not found in Asset Browser.");
         }
-
     }
 
     private CancellationTokenSource? _cancellationTokenSource;

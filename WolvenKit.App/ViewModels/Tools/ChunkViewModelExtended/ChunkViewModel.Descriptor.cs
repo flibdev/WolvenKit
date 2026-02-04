@@ -651,6 +651,12 @@ public partial class ChunkViewModel
             case animAnimNode_Container nodeContainer:
                 Descriptor = $"[{nodeContainer.Nodes.Count}]";
                 return;
+            case MaterialPass materialPass:
+                Descriptor = materialPass.StagePassNameRegular;
+                return;
+            case MaterialTechnique matTech:
+                Descriptor = string.Join(", ", matTech.Passes.Select(p => p.StagePassNameRegular));                                
+                return;
             default:
             {
                 // mesh: boneTransforms (in different coordinate spaces)

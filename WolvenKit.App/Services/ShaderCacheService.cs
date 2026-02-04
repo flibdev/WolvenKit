@@ -4,11 +4,15 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WolvenKit.Common;
+using WolvenKit.Common.FNV1A;
+using WolvenKit.Core.Interfaces;
 using WolvenKit.RED4.IO;
 using WolvenKit.RED4.ShaderCache;
 using WolvenKit.RED4.ShaderCache.Common;
+using WolvenKit.RED4.Types;
 
-namespace WolvenKit.Common.Services
+namespace WolvenKit.App.Services
 {
     public class ShaderCacheService : IShaderCacheService
     {
@@ -29,7 +33,45 @@ namespace WolvenKit.Common.Services
         private BinaryReader? _reader = null;
 
 
-        public ShaderCacheService() { } 
+        private readonly IArchiveManager _archiveManager;
+        private readonly ILoggerService _loggerService;
+
+        public ShaderCacheService(
+            IArchiveManager archiveManager,
+            ILoggerService loggerService)
+        {
+            _archiveManager = archiveManager;
+            _loggerService = loggerService;
+        }
+
+        private static readonly Dictionary<string, string> s_knownNameMismatches = new()
+        {
+            // Has duplicate materials
+            { "silverhand_overlay", "base\\materials\\silverhand_overlay.mt" },
+            // CDPR can't speel
+            { "q305_thunderstorm_lighting", "ep1\\fx\\quest\\q305\\thunderstorm\\q305_thunderstorm_lightning.mt" },
+            // Or be consistent
+            { "water_test", "base\\fx\\shaders\\water_plane.mt" }
+        };
+
+        public IGameFile? GetMaterialByName(string name)
+        {
+            var mat = s_knownNameMismatches.GetValueOrDefault(name);
+
+            mat ??= _archiveManager
+                .Search($"\\{name}.mt", ArchiveManagerScope.Basegame)
+                .Select(f => f.FileName)
+                .Cast<string?>()
+                .FirstOrDefault();
+
+            mat ??= _archiveManager
+                .Search($"\\{name}.remt", ArchiveManagerScope.Basegame)
+                .Select(f => f.FileName)
+                .Cast<string?>()
+                .FirstOrDefault();
+
+            return mat != null ? _archiveManager.GetGameFile(mat, false, false) : null;
+        }
 
         public async Task LoadCache(string path)
         {
@@ -45,7 +87,7 @@ namespace WolvenKit.Common.Services
                 _reader?.Close();
                 Cache = null;
             }
-
+             
             await Task.Run(() =>
             {
                 var file = File.OpenRead(path);

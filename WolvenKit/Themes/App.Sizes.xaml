@@ -188,6 +188,8 @@
 
     <!-- ShaderCacheView -->
     <GridLength x:Key="WolvenKitShaderCacheTabColumnWidth">300</GridLength>
+    <GridLength x:Key="WolvenKitShaderCacheGridSpacing">20</GridLength>
+    <system:Double x:Key="WolvenKitShaderCacheBoolColumnWidth">48</system:Double>
 
     <!-- RedTreeView -->
     <GridLength x:Key="WolvenKitRedTreeIconColumnWidth">20</GridLength>

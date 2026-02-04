@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
     <Version>8.17.2</Version>
     <Platforms>x64</Platforms>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
@@ -89,7 +89,7 @@
     <!-- Work around https://github.com/dotnet/wpf/issues/6792 -->
 
     <ItemGroup>
-        <FilteredAnalyzer Include="@(Analyzer->Distinct())" />
+        <FilteredAnalyzer Include="@(Analyzer-&gt;Distinct())" />
         <Analyzer Remove="@(Analyzer)" />
         <Analyzer Include="@(FilteredAnalyzer)" />
     </ItemGroup>

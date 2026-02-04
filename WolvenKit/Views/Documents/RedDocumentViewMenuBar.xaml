@@ -298,6 +298,22 @@
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
+
+            <!-- Material Templates: .mt -->
+            <Style
+                x:Key="ShowMatTemplateMenuItemStyle"
+                BasedOn="{StaticResource MenuItemStyle}"
+                TargetType="{x:Type MenuItem}">
+                <Setter Property="Visibility" Value="Collapsed" />
+
+                <Style.Triggers>
+                    <DataTrigger
+                        Binding="{Binding Path=ContentType}"
+                        Value="{x:Static documents:RedDocumentItemType.Mt}">
+                        <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
         </Grid.Resources>
 
         <Menu
@@ -1027,6 +1043,19 @@
                 </MenuItem.Icon>
             </MenuItem>
 
+            <!-- Material Templates: .mt -->
+            <MenuItem
+                Style="{StaticResource ShowMatTemplateMenuItemStyle}"
+                Header="Calculate Param Block Sizes"
+                Command="{Binding Path=CalculateParamBlockSizesCommand}">
+                <MenuItem.Icon>
+                    <templates:IconBox
+                        IconPack="Material"
+                        Kind="Calculator"
+                        Foreground="White" />
+                </MenuItem.Icon>                
+            </MenuItem>
+            
             <!-- File validation submenu. Run WScript directly with shift-click. -->
             <MenuItem
                 Style="{StaticResource NestedMenuItemStyle}"

@@ -10,6 +10,7 @@
     xmlns:sf="http://schemas.syncfusion.com/wpf"
     xmlns:tools="clr-namespace:WolvenKit.App.ViewModels.Tools;assembly=WolvenKit.App"
     xmlns:templates="clr-namespace:WolvenKit.Views.Templates"
+    xmlns:converters="clr-namespace:WolvenKit.Converters"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=tools:ShaderCacheViewModel}"
     d:DesignWidth="800"
@@ -21,8 +22,9 @@
         </Grid.RowDefinitions>
 
         <Grid.Resources>
+            <converters:NullVisibilityConverter x:Key="NullVisibilityConverter" />
 
-            <Style TargetType="{x:Type Menu}">
+            <Style TargetType="Menu">
                 <Setter Property="Background" Value="{StaticResource BackgroundColor_Frame_Background}" />
             </Style>
 
@@ -56,6 +58,15 @@
 
             <Style TargetType="{x:Type hc:SearchBar}">
                 <Setter Property="Background" Value="{StaticResource BackgroundColor_Frame_Background}" />
+            </Style>
+
+            <Style x:Key="MaterialName" TargetType="Border">
+                <Setter Property="Background" Value="{StaticResource WolvenKitRedShadow}" />
+                <Setter Property="Padding" Value="6,2" />
+            </Style>
+
+            <Style x:Key="MaterialNameLabel" TargetType="Label">
+                <Setter Property="FontSize" Value="{StaticResource WolvenKitFontMedium}" />
             </Style>
 
         </Grid.Resources>
@@ -206,9 +217,12 @@
                         ColumnSizer="Star"
                         IsReadOnly="True"
                         ItemsSource="{Binding Materials}"
-                        SelectedItem="{Binding SelectedMaterial, Mode=TwoWay}">
+                        SelectionUnit="Row"
+                        SelectionMode="Single"
+                        SelectedItem="{Binding SelectedMaterialKey}"
+                        >
                         <sf:SfDataGrid.Columns>
-                            <sf:GridTextColumn HeaderText="Material" MappingName="Name" />
+                            <sf:GridTextColumn HeaderText="Materials" MappingName="Name" />
                         </sf:SfDataGrid.Columns>
                     </sf:SfDataGrid>
 
@@ -218,7 +232,103 @@
                     Grid.Column="1"
                     HorizontalAlignment="Stretch" />
 
-                
+                <Grid Grid.Column="2"
+                      Visibility="{Binding SelectedMaterialVM, Converter={StaticResource NullVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="{StaticResource WolvenKitShaderCacheGridSpacing}" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Border
+                        Grid.Row="0"
+                        Style="{StaticResource MaterialName}"
+                        >
+                        <Label
+                            Style="{StaticResource MaterialNameLabel}"
+                            Content="{Binding SelectedMaterialVM.Name, FallbackValue='Material Name'}"
+                            />
+                    </Border>
+
+                    <Menu Grid.Row="1" Margin="0,1,0,2">
+                        <MenuItem
+                            Style="{StaticResource MenuItemStyle}"
+                            Header="Show Template In Asset Browser"
+                            Command="{Binding Path=ShowMaterialTemplateCommand}"
+                            Visibility="{Binding SelectedMaterialVM.FilePath, Converter={StaticResource NullVisibilityConverter}}">
+                            <MenuItem.Icon>
+                                <templates:IconBox
+                                    IconPack="ForkAwesome"
+                                    Kind="ArrowCircleRight"
+                                    Margin="{DynamicResource WolvenKitMarginTiny}"
+                                    Size="{DynamicResource WolvenKitIconTiny}"
+                                    Foreground="{StaticResource WolvenKitYellow}" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+
+                        <MenuItem
+                            Style="{StaticResource MenuItemStyle}"
+                            Header="Calculate Shader Techniques"
+                            Command="{Binding Path=CalculateShaderTechniquesCommand}"
+                            Visibility="{Binding SelectedMaterialVM.FilePath, Converter={StaticResource NullVisibilityConverter}}">
+                            <MenuItem.Icon>
+                                <templates:IconBox
+                                    IconPack="Material"
+                                    Kind="CalculatorVariant"
+                                    Margin="{DynamicResource WolvenKitMarginTiny}"
+                                    Size="{DynamicResource WolvenKitIconTiny}"
+                                    Foreground="{StaticResource WolvenKitCyan}" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </Menu>
+
+                    <sf:PropertyGrid
+                        x:Name="MatPropGrid"
+                        Grid.Row="2"
+                        BorderThickness="0"
+                        ButtonPanelVisibility="Collapsed"
+                        SearchBoxVisibility="Collapsed"
+                        SortDirection="{x:Null}"
+                        AutoGenerateItems="False"
+                        SelectedObject="{Binding SelectedMaterialVM, Mode=OneWay}">
+                        <sf:PropertyGrid.Items>
+                            <sf:PropertyGridItem PropertyName="Hash"  />
+                            <sf:PropertyGridItem PropertyName="FilePath" DisplayName="CMaterialTemplate" />
+                            <sf:PropertyGridItem PropertyName="TechniqueCount" DisplayName="Technique Count" />
+                            <sf:PropertyGridItem PropertyName="VertexFactories" DisplayName="Vertex Factories" />
+                        </sf:PropertyGrid.Items>
+                    </sf:PropertyGrid>
+
+                    <sf:SfDataGrid
+                        x:Name="TechniqueGrid"
+                        Grid.Row="5"
+                        AllowEditing="False"
+                        AllowFiltering="True"
+                        AllowResizingColumns="True"
+                        AllowSorting="True"
+                        AutoGenerateColumns="False"
+                        ColumnSizer="AutoWithLastColumnFill"
+                        HeaderRowHeight="{DynamicResource WolvenKitTreeGridRowHeaderHeight}"
+                        RowHeight="{DynamicResource WolvenKitTreeGridRowHeight}"
+                        IsReadOnly="True"                        
+                        ItemsSource="{Binding SelectedMaterialVM.Techniques}"
+                        >
+                        <sf:SfDataGrid.Columns>
+                            <sf:GridNumericColumn HeaderText="VF Sort" MappingName="CompositeSort" NumberDecimalDigits="0" ParsingMode="Int" />
+                            <sf:GridTextColumn HeaderText="Vertex Factory" MappingName="VertexFactory" />
+                            <sf:GridCheckBoxColumn HeaderText="DM" MappingName="IsDismembered" Width="{StaticResource WolvenKitShaderCacheBoolColumnWidth}" />
+                            <sf:GridCheckBoxColumn HeaderText="PS" MappingName="IsPreskinned" Width="{StaticResource WolvenKitShaderCacheBoolColumnWidth}" />
+                            <sf:GridCheckBoxColumn HeaderText="DC" MappingName="IsDiscarded" Width="{StaticResource WolvenKitShaderCacheBoolColumnWidth}" />
+                            <sf:GridNumericColumn HeaderText="Index" MappingName="Index" NumberDecimalDigits="0" ParsingMode="Int" />
+                            <sf:GridNumericColumn HeaderText="Pass Index" MappingName="PassIndex" NumberDecimalDigits="0" ParsingMode="Int"  />
+                            <sf:GridTextColumn HeaderText="Pass" MappingName="Pass" />
+                        </sf:SfDataGrid.Columns>
+                    </sf:SfDataGrid>
+                        
+
+                </Grid>
 
             </Grid>
 

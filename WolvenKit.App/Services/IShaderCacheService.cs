@@ -1,9 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using WolvenKit.Core.Interfaces;
 using WolvenKit.RED4.ShaderCache;
 using WolvenKit.RED4.ShaderCache.Common;
 
-namespace WolvenKit.Common.Services;
+namespace WolvenKit.App.Services;
+
 public interface IShaderCacheService : IDisposable
 {
     event EventHandler? OnLoad;
@@ -15,4 +17,6 @@ public interface IShaderCacheService : IDisposable
     ICache? Cache { get; }
 
     byte[] GetShaderBytecode(IShader shader);
+
+    public IGameFile? GetMaterialByName(string name);
 }
