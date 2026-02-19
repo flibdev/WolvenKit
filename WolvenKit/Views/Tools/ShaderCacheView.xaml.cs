@@ -13,9 +13,11 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ReactiveUI;
+using Syncfusion.UI.Xaml.Grid;
 using Syncfusion.Windows.PropertyGrid;
 using WolvenKit.App.ViewModels.Tools;
 using WolvenKit.App.ViewModels.Tools.ShaderCache;
+using WolvenKit.Views.Dialogs.Windows;
 
 namespace WolvenKit.Views.Tools
 {
@@ -45,6 +47,33 @@ namespace WolvenKit.Views.Tools
                     break;
             }
             e.ReadOnly = true;
+        }
+
+        private void ExportSelected_Click(object sender, RoutedEventArgs e)
+        {
+            if (Context == null)
+            {
+                return;
+            }
+
+            if (Context.SelectedTechniques != null && Context.SelectedTechniques.Count > 0)
+            {
+                var dialog = new ExportShaderTechniquesDialogView();
+                if (dialog.ShowDialog() != true)
+                {
+                    return;
+                }
+
+                Context.SaveSelectTechniques(dialog.ViewModel);
+            }
+        }
+
+        private void TabControlExt_SelectedItemChangedEvent(object sender, Syncfusion.Windows.Tools.Controls.SelectedItemChangedEventArgs e)
+        {
+            if (Context != null)
+            {
+                Context.SelectedTechniques = [];
+            }
         }
     }
 }

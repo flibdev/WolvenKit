@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ namespace WolvenKit.App.ViewModels.Tools.ShaderCache
     public class MaterialTechniqueViewModel : ObservableObject
     {
         public uint CompositeSort { get; set; }
-
+        public required string MatName { get; set; }
         public uint Index { get; set; }
         public uint PassIndex { get; set; }
         public string Pass { get; set; }
@@ -34,8 +35,10 @@ namespace WolvenKit.App.ViewModels.Tools.ShaderCache
         public bool IsDismembered { get; set; }
         public bool IsPreskinned { get; set; }
 
-        public MaterialTechniqueViewModel(MaterialTechnique tech)
+        [SetsRequiredMembers]
+        public MaterialTechniqueViewModel(string matName, MaterialTechnique tech)
         {
+            MatName = matName;
             Index = tech.Desc.Index;
             PassIndex = tech.Desc.PassIndex;
             Pass = tech.Desc.Pass;

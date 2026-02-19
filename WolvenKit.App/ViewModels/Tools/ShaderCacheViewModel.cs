@@ -1,18 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SharpDX;
 using Splat.ModeDetection;
+using WolvenKit.App.Extensions;
+using WolvenKit.App.Interaction;
 using WolvenKit.App.Models;
 using WolvenKit.App.Services;
 using WolvenKit.App.ViewModels.Shell;
 using WolvenKit.App.ViewModels.Tools.ShaderCache;
 using WolvenKit.Common.Services;
+using WolvenKit.Core.Extensions;
 using WolvenKit.Core.Interfaces;
 using WolvenKit.RED4.ShaderCache.Common;
 using WolvenKit.RED4.ShaderCache.Dynamic;
@@ -55,10 +60,15 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
     [ObservableProperty] private CacheMetadata? _cacheMetadata = null;
 
     [ObservableProperty] private List<CacheMaterialKey> _materials = [];
+    [ObservableProperty] private string _materialCount = "Materials";
     [ObservableProperty] private CacheMaterialKey? _selectedMaterialKey = null;
     [ObservableProperty] private Material? _selectedMaterial = null;
     [ObservableProperty] private MaterialViewModel? _selectedMaterialVM = null;
 
+    [ObservableProperty] private List<MaterialTechniqueViewModel> _techniques = [];
+    [ObservableProperty] private ObservableCollection<object>? _selectedTechniques = [];
+
+    [ObservableProperty] private string _techniqueCount = "Techniques";
 
 
     private readonly ISettingsManager _settingsManager;
@@ -143,6 +153,19 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
                 .Select(kvp => new CacheMaterialKey(kvp.Value.Name, kvp.Key))
                 .OrderBy(mk => mk.Name)
                 .ToList();
+
+            MaterialCount = $"Materials ({Materials.Count})";
+
+            Techniques = cache.Materials
+                .SelectMany(kvp =>
+                    kvp.Value.Techniques.Select(
+                        t => new MaterialTechniqueViewModel(kvp.Value.Name, t)
+                    )                    
+                )
+                .OrderBy(mt => mt.MatName)
+                .ThenBy(mt => mt.CompositeSort)
+                .ToList();
+            TechniqueCount = $"Techniques ({Techniques.Count})";
         }
 
     }
@@ -162,6 +185,8 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
             var cache = _shaderCacheService.Cache as MaterialCache;
             if (cache != null && cache.Materials.TryGetValue(value.Hash, out var material))
             {
+                SelectedTechniques = [];
+
                 SelectedMaterialVM = new MaterialViewModel
                 {
                     Hash = value.Hash.ToString("X8"),
@@ -172,7 +197,7 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
                         .OrderBy(vf => vf)
                         .ToList(),
                     Techniques = material.Techniques
-                        .Select(t => new MaterialTechniqueViewModel(t))
+                        .Select(t => new MaterialTechniqueViewModel(material.Name, t))
                         .OrderBy(mt => mt.CompositeSort)
                         .ToList()
                 };
@@ -218,8 +243,6 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
                 .Where(t => !HasFeatFlag(t.FeatureFlagsEnabledMask, EFeatureFlagMask.Overdraw))
                 .Select(t => t.Passes.Count)
                 .Sum();
-
-            _log.Info($"Tech Count = {techCount}");
 
             foreach (var vf in mt.VertexFactories)
             {
@@ -303,7 +326,16 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
             }
 
         }
+    }
 
-        _log.Warning($"Total Techniques = {techTotal}");
+
+    public /*async Task*/ void SaveSelectTechniques(ExportShaderTechniquesDialogViewModel export)
+    {
+        var selected = SelectedTechniques.NotNull().OfType<MaterialTechniqueViewModel>().ToList();
+        
+        if (selected.Count == 0) { return; }
+
+        _log.Info($"Saving {SelectedTechniques.Count} techs");
+
     }
 }
