@@ -59,5 +59,16 @@ namespace WolvenKit.Views.Dialogs.Windows
                 vm.Folder = dialog.FolderName;
             }
         }
+
+        private void FilenameTemplate_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ViewModel is not ExportShaderTechniquesDialogViewModel vm)
+            {  return; }
+
+            if (e.AddedItems.Count > 0)
+            {
+                vm.FilenameTemplate = e.AddedItems[0].ToString();
+            }
+        }
     }
 }

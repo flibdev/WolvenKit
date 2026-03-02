@@ -16,47 +16,63 @@ using WolvenKit.App.ViewModels.Dialogs;
 namespace WolvenKit.App.ViewModels.Tools.ShaderCache;
 public partial class ExportShaderTechniquesDialogViewModel : DialogViewModel
 {
-    public enum ExportFormat
+    public enum ExportFormats
     {
-        [Description("Raw DXIL bitcode")]
+        [Display(Description = "Raw DXIL bitcode")]
         Raw_DXIL = 0,
-        [Description("Disassembled DXIL")]
+        [Display(Description = "Disassembled DXIL")]
         Dis_DXIL,
-        [Description("Converted SPIR-V bitcode")]
+        [Display(Description = "Converted SPIR-V bitcode")]
         Raw_SPIRV,
-        [Description("Decompiled HLSL via SPIR-V")]
+        [Display(Description = "Decompiled HLSL via SPIR-V")]
         Dec_HLSL
     }
 
     [Flags]
-    public enum ShaderType
+    public enum ShaderTypes
     {
-        [Description("Vertex Shader")]
+        [Display(Description = "Vertex Shader")]
         Vertex = 1,
-        [Description("Pixel Shader")]
+        [Display(Description = "Pixel Shader")]
         Pixel = 2,
-        [Description("Both Shaders")]
+        [Display(Description = "Both Shaders")]
         Both = 3
     }
-    
 
-    [ObservableProperty] private ExportFormat _format = ExportFormat.Raw_DXIL;
-    [ObservableProperty] private ShaderType _type = ShaderType.Both;
+    [NotifyPropertyChangedFor(nameof(CanExport))]
+    [ObservableProperty] private ExportFormats? _exportFormat;
+
+    [NotifyPropertyChangedFor(nameof(CanExport))]
+    [ObservableProperty] private ShaderTypes? _shaderType;
 
     [NotifyPropertyChangedFor(nameof(CanExport))]
     [ObservableProperty] private string? _folder;
 
+    [NotifyPropertyChangedFor(nameof(CanExport))]
+    [ObservableProperty] private string? _filenameTemplate;
+
     // Dropdown selections
-    [ObservableProperty] private IEnumerable<EnumMember<ExportFormat>>? _exportFormats;
-    [ObservableProperty] private IEnumerable<EnumMember<ShaderType>>? _shaderTypes;
+    [ObservableProperty] private List<ExportFormats>? _exportFormatList;
+    [ObservableProperty] private List<ShaderTypes>? _shaderTypeList;
+    [ObservableProperty] private List<string>? _filenameTemplateList;
 
     //[ObservableProperty] private ObservableCollection
 
-    public bool CanExport => !string.IsNullOrEmpty(Folder);
+    public bool CanExport => ExportFormat != null
+                          && ShaderType != null
+                          && !string.IsNullOrEmpty(Folder)
+                          && !string.IsNullOrEmpty(FilenameTemplate);
 
     public ExportShaderTechniquesDialogViewModel()
     {
-        ExportFormats = EnumHelpers.EnumToItemSource<ExportFormat>();
-        ShaderTypes = EnumHelpers.EnumToItemSource<ShaderType>();
+        ExportFormatList = [.. Enum.GetValues<ExportFormats>()];
+
+        ShaderTypeList = [.. Enum.GetValues<ShaderTypes>()];
+
+        FilenameTemplateList = [
+            "{Material}_{SortID}_{VF}_{Type}{Flags}",
+            "{VertexFactory}{Flags}_{Material}_{Type}"
+        ];
+        FilenameTemplate = FilenameTemplateList[0];
     }
 }

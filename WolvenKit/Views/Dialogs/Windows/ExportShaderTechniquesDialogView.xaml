@@ -6,9 +6,8 @@
     xmlns:sf="http://schemas.syncfusion.com/wpf"
     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:templates="clr-namespace:WolvenKit.Views.Templates"
-    xmlns:helpers="clr-namespace:WolvenKit.Helpers"
+    xmlns:convert="clr-namespace:WolvenKit.Converters"
     xmlns:ui="using:CommunityToolkit.WinUI"
-    xmlns:local="clr-namespace:WolvenKit.App.ViewModels.Tools.ShaderCache"
     Title="Export Shader Techniques"
     MinWidth="{DynamicResource WolvenKitDialogWidthSmall}"
     MinHeight="{DynamicResource WolvenKitDialogHeightSmall}"
@@ -27,11 +26,20 @@
                     <hc:ThemeResources />
                     <hc:Theme />
                 </ResourceDictionary.MergedDictionaries>
+
+                <convert:EnumDescriptionConverter x:Key="EnumConverter" />
+
                 <Style
                     BasedOn="{StaticResource WolvenkitLabelStyle}"
                     TargetType="{x:Type Label}">
-                    <Setter Property="HorizontalAlignment" Value="Left" />
+                    <Setter Property="HorizontalAlignment" Value="Stretch" />
+                    <Setter Property="HorizontalContentAlignment" Value="Left" />
                     <Setter Property="FontSize" Value="{DynamicResource WolvenKitFontSubTitle}" />
+                </Style>
+
+                <Style x:Key="TemplateStyle" TargetType="{x:Type TextBlock}">
+                    <Setter Property="Padding" Value="10,5" />
+                    <Setter Property="Foreground" Value="{StaticResource ForegroundColor_Grey_Dark}" />
                 </Style>
             </ResourceDictionary>
         </Grid.Resources>
@@ -64,47 +72,68 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="10" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="10" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="10" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Label
                         Grid.Row="0"
                         Grid.Column="0"
-                        Content="Export Format" />
+                        Content="Export Format"
+                        Target="{Binding ElementName=ExportFormatComboBox}"
+                        />
 
                     <ComboBox
+                        x:Name="ExportFormatComboBox"
                         Grid.Row="0"
                         Grid.Column="1"
                         Grid.ColumnSpan="2"
-                        ItemsSource="{Binding ExportFormats}"
-                        DisplayMemberPath="Desc"
-                        SelectedValuePath="Value"
-                        SelectedItem="{Binding Format, Mode=OneWay}"
-                        />
+                        ItemsSource="{Binding ExportFormatList}"
+                        SelectedItem="{Binding ExportFormat, Converter={StaticResource EnumConverter}}"
+                        >
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Path=., Converter={StaticResource EnumConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
 
 
                     <Label
                         Grid.Row="2"
                         Grid.Column="0"
-                        Content="Shader Types" />
+                        Content="Shader Types"
+                        Target="{Binding ElementName=ShaderTypesComboBox}"
+                        />
 
-                    <hc:ComboBox
+                    <ComboBox
+                        x:Name="ShaderTypesComboBox"
                         Grid.Row="2"
                         Grid.Column="1"
                         Grid.ColumnSpan="2"
-                        ItemsSource="{Binding ShaderTypes}"
-                        DisplayMemberPath="Desc"
-                        SelectedValuePath="Value"
-                        SelectedItem="{Binding Type, Mode=OneWay}"
+                        ItemsSource="{Binding ShaderTypeList}"
+                        SelectedItem="{Binding ShaderType, Converter={StaticResource EnumConverter}}"
                         >
-                    </hc:ComboBox>
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Path=., Converter={StaticResource EnumConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
 
 
                     <Label
                         Grid.Row="4"
                         Grid.Column="0"
-                        Content="Output Folder" />
+                        Content="Output Folder"
+                        Target="{Binding ElementName=OutputFolderTextBox}"
+                        />
 
                     <TextBox
+                        x:Name="OutputFolderTextBox"
                         Grid.Row="4"
                         Grid.Column="1"
                         Margin="{StaticResource WolvenKitMarginTinyRight}"
@@ -115,13 +144,72 @@
                         Grid.Row="4"
                         Grid.Column="2"
                         Padding="0"
-                        KeyboardNavigation.TabIndex="-1"
                         Click="FileButton_Click">
                         <templates:IconBox
                             IconPack="Material"
                             Kind="Folder"
                             Size="{DynamicResource WolvenKitIconMicro}" />
                     </Button>
+
+                    <Label
+                        Grid.Row="6"
+                        Grid.Column="0"
+                        Content="Filename Template"
+                        Target="{Binding ElementName=FilenameTemplateTextBox}"
+                        />
+
+                    <TextBox
+                        x:Name="FilenameTemplateTextBox"
+                        Grid.Row="6"
+                        Grid.Column="1"
+                        Margin="{StaticResource WolvenKitMarginTinyRight}"
+                        Text="{Binding FilenameTemplate}"
+                        />
+
+                    <hc:ComboBox
+                        x:Name="FilenameTemplateComboBox"
+                        Grid.Row="6"
+                        Grid.Column="2"
+                        ItemsSource="{Binding FilenameTemplateList}"
+                        SelectionChanged="FilenameTemplate_SelectionChanged"
+                        />
+
+                    <TextBlock
+                        Grid.Row="8"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="3"
+                        Style="{StaticResource TemplateStyle}"
+                        >
+                        Supported filename template variables:
+                    </TextBlock>
+                    <TextBlock
+                        Grid.Row="9"
+                        Grid.Column="0"
+                        Style="{StaticResource TemplateStyle}"
+                        TextAlignment="Right">
+                        {SortID}<LineBreak/>
+                        {Material}<LineBreak/>
+                        {Index}<LineBreak/>
+                        {PassIndex}<LineBreak/>
+                        {Pass}<LineBreak/>
+                        {VF}<LineBreak/>
+                        {Flags}<LineBreak/>
+                        {Type}
+                    </TextBlock>
+                    <TextBlock
+                        Grid.Row="9"
+                        Grid.Column="1"
+                        Grid.ColumnSpan="2"
+                        Style="{StaticResource TemplateStyle}">
+                        Composite sort value used in the data tables<LineBreak/>
+                        Material name<LineBreak/>
+                        Technique index number<LineBreak/>
+                        Pass index number<LineBreak/>
+                        Pass name<LineBreak/>
+                        Vertex Factory<LineBreak/>
+                        isDismembered, isPreskinned, isDisarded<LineBreak/>
+                        Vertex or Pixel Shader
+                    </TextBlock>
 
                 </Grid>
             </sf:WizardPage>

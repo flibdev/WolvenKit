@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -328,14 +329,57 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
         }
     }
 
+    private static string GetExportExtension(ExportShaderTechniquesDialogViewModel.ExportFormats? format)
+    {
+        return format switch
+        {
+            ExportShaderTechniquesDialogViewModel.ExportFormats.Raw_DXIL => "dxil",
+            ExportShaderTechniquesDialogViewModel.ExportFormats.Dis_DXIL => "ll",
+            ExportShaderTechniquesDialogViewModel.ExportFormats.Raw_SPIRV => "spirv",
+            ExportShaderTechniquesDialogViewModel.ExportFormats.Dec_HLSL => "hlsl",
+            _ => "dat",
+        };
+    }
+
+    private static string TransformFilenameTemplate(string template, MaterialTechniqueViewModel vm, bool isPixelShader)
+    {
+        template = template.Replace("{SortID}", $"{vm.CompositeSort:X8}");
+        template = template.Replace("{Material}", vm.MatName);
+        template = template.Replace("{Index}", $"{vm.Index}");
+        template = template.Replace("{PassIndex}", $"{vm.PassIndex}");
+        template = template.Replace("{Pass}", vm.Pass);
+        template = template.Replace("{VF}", vm.VertexFactory.ToString().Replace("MVF_", ""));
+
+        var flagstr = new StringBuilder();
+        if (vm.IsDismembered) { flagstr.Append("_DM"); }
+        if (vm.IsPreskinned)  { flagstr.Append("_PS"); }
+        if (vm.IsDiscarded)   { flagstr.Append("_DC"); }
+        template = template.Replace("{Flags}", flagstr.ToString());
+
+        template = template.Replace("{Type}", isPixelShader ? "PS" : "VS");
+
+        return template;
+    }
 
     public /*async Task*/ void SaveSelectTechniques(ExportShaderTechniquesDialogViewModel export)
     {
         var selected = SelectedTechniques.NotNull().OfType<MaterialTechniqueViewModel>().ToList();
-        
-        if (selected.Count == 0) { return; }
 
-        _log.Info($"Saving {SelectedTechniques.Count} techs");
+        // sanity checks
+        if (selected.Count == 0 || export.ExportFormat == null || export.ShaderType == null)
+        { return; }
+        if (string.IsNullOrEmpty(export.FilenameTemplate) || string.IsNullOrEmpty(export.Folder))
+        { return; }
 
+        _log.Info($"Saving {selected.Count} techs");
+
+        foreach (var technique in selected)
+        {
+            var filename = TransformFilenameTemplate(export.FilenameTemplate, technique, false);
+            var extension = GetExportExtension(export.ExportFormat);
+            var filepath = Path.Combine(export.Folder, $"{filename}.{extension}");
+
+            _log.Info($"filepath = {filepath}");
+        }
     }
 }
