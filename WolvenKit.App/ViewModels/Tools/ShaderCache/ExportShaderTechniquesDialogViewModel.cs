@@ -14,31 +14,32 @@ using WolvenKit.App.ViewModels.Dialogs;
 
 
 namespace WolvenKit.App.ViewModels.Tools.ShaderCache;
+
+public enum ExportFormats
+{
+    [Display(Description = "Raw DXIL bitcode")]
+    Raw_DXIL = 0,
+    [Display(Description = "Disassembled DXIL")]
+    Dis_DXIL,
+    [Display(Description = "Converted SPIR-V bitcode")]
+    Raw_SPIRV,
+    [Display(Description = "Decompiled HLSL via SPIR-V")]
+    Dec_HLSL
+}
+
+[Flags]
+public enum ShaderTypes : byte
+{
+    [Display(Description = "Vertex Shader")]
+    Vertex = 1,
+    [Display(Description = "Pixel Shader")]
+    Pixel = 2,
+    [Display(Description = "Both Shaders")]
+    Both = Vertex | Pixel
+}
+
 public partial class ExportShaderTechniquesDialogViewModel : DialogViewModel
 {
-    public enum ExportFormats
-    {
-        [Display(Description = "Raw DXIL bitcode")]
-        Raw_DXIL = 0,
-        [Display(Description = "Disassembled DXIL")]
-        Dis_DXIL,
-        [Display(Description = "Converted SPIR-V bitcode")]
-        Raw_SPIRV,
-        [Display(Description = "Decompiled HLSL via SPIR-V")]
-        Dec_HLSL
-    }
-
-    [Flags]
-    public enum ShaderTypes
-    {
-        [Display(Description = "Vertex Shader")]
-        Vertex = 1,
-        [Display(Description = "Pixel Shader")]
-        Pixel = 2,
-        [Display(Description = "Both Shaders")]
-        Both = 3
-    }
-
     [NotifyPropertyChangedFor(nameof(CanExport))]
     [ObservableProperty] private ExportFormats? _exportFormat;
 

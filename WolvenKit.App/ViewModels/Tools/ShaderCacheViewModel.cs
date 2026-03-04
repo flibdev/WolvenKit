@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HelixToolkit.SharpDX.Core;
 using SharpDX;
 using Splat.ModeDetection;
 using WolvenKit.App.Extensions;
@@ -23,6 +24,7 @@ using WolvenKit.Core.Interfaces;
 using WolvenKit.RED4.ShaderCache.Common;
 using WolvenKit.RED4.ShaderCache.Dynamic;
 using WolvenKit.RED4.Types;
+using WolvenKit.ShaderTools;
 using static WolvenKit.RED4.Types.Enums;
 using Material = WolvenKit.RED4.ShaderCache.Dynamic.Material;
 
@@ -329,14 +331,14 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
         }
     }
 
-    private static string GetExportExtension(ExportShaderTechniquesDialogViewModel.ExportFormats? format)
+    private static string GetExportExtension(ExportFormats? format)
     {
         return format switch
         {
-            ExportShaderTechniquesDialogViewModel.ExportFormats.Raw_DXIL => "dxil",
-            ExportShaderTechniquesDialogViewModel.ExportFormats.Dis_DXIL => "ll",
-            ExportShaderTechniquesDialogViewModel.ExportFormats.Raw_SPIRV => "spirv",
-            ExportShaderTechniquesDialogViewModel.ExportFormats.Dec_HLSL => "hlsl",
+            ExportFormats.Raw_DXIL => "dxil",
+            ExportFormats.Dis_DXIL => "ll",
+            ExportFormats.Raw_SPIRV => "spirv",
+            ExportFormats.Dec_HLSL => "hlsl",
             _ => "dat",
         };
     }
@@ -361,25 +363,78 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
         return template;
     }
 
+    private static bool IsShaderType(ShaderTypes flags, ShaderTypes value) => (flags & value) == value;
+
     public /*async Task*/ void SaveSelectTechniques(ExportShaderTechniquesDialogViewModel export)
     {
         var selected = SelectedTechniques.NotNull().OfType<MaterialTechniqueViewModel>().ToList();
+        var cache = _shaderCacheService?.Cache as MaterialCache;
 
         // sanity checks
+        if (_shaderCacheService == null || cache == null)
+        { return; }
         if (selected.Count == 0 || export.ExportFormat == null || export.ShaderType == null)
         { return; }
         if (string.IsNullOrEmpty(export.FilenameTemplate) || string.IsNullOrEmpty(export.Folder))
         { return; }
 
+        // Ensure folder exists (this 
+        var folderInfo = Directory.CreateDirectory(export.Folder);
+        if (folderInfo == null)
+        {
+            _log.Error($"Somehow failed to get directory info for path '{export.Folder}'");
+            return;
+        }
+
         _log.Info($"Saving {selected.Count} techs");
+
+        var extension = GetExportExtension(export.ExportFormat);
 
         foreach (var technique in selected)
         {
-            var filename = TransformFilenameTemplate(export.FilenameTemplate, technique, false);
-            var extension = GetExportExtension(export.ExportFormat);
-            var filepath = Path.Combine(export.Folder, $"{filename}.{extension}");
+            for (var shaderType = ShaderTypes.Vertex; shaderType < ShaderTypes.Both; shaderType++ )
+            {
+                if (IsShaderType(export.ShaderType.Value, shaderType))
+                {
+                    var isVS = shaderType == ShaderTypes.Vertex;
 
-            _log.Info($"filepath = {filepath}");
+                    var filename = TransformFilenameTemplate(export.FilenameTemplate, technique, isVS);
+                    var filepath = Path.Combine(folderInfo.FullName, $"{filename}.{extension}");
+
+                    var shaderHash = isVS ? technique.VSHash : technique.PSHash;
+                    if (shaderHash == null)
+                    {
+                        _log.Warning($"No defined {shaderType} for technique '{filename}'");
+                        continue;
+                    }
+
+                    var shader = cache.Shaders.Get(shaderHash.Value);
+                    if (shader == null)
+                    {
+                        _log.Error($"Cannot retrieve shader with hash {shaderHash:X16}'");
+                        continue;
+                    }
+
+                    var bytecode = _shaderCacheService.GetShaderBytecode(shader);
+
+                    switch (export.ExportFormat)
+                    {
+                        case ExportFormats.Raw_DXIL:
+                            File.WriteAllBytes(filepath, bytecode);
+                            break;
+                        case ExportFormats.Dis_DXIL:
+                            var err = DXILDecompiler.ExportDisassembled(bytecode, (uint)bytecode.Length, filepath);
+                            if (err != DXILDecompiler.SUCCESS)
+                            {
+                                _log.Error($"Error: {DXILDecompiler.GetErrorString(err)}");
+                            }
+                            break;
+                        default:
+                            _log.Error($"Unsupported format {export.ExportFormat} for technique '{filename}'");
+                            break;
+                    }
+                }
+            }
         }
     }
 }

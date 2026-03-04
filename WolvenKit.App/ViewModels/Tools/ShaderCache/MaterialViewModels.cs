@@ -34,6 +34,8 @@ namespace WolvenKit.App.ViewModels.Tools.ShaderCache
         public bool IsDiscarded { get; set; }
         public bool IsDismembered { get; set; }
         public bool IsPreskinned { get; set; }
+        public ulong? VSHash { get; set; }
+        public ulong? PSHash { get; set; }
 
         [SetsRequiredMembers]
         public MaterialTechniqueViewModel(string matName, MaterialTechnique tech)
@@ -46,6 +48,8 @@ namespace WolvenKit.App.ViewModels.Tools.ShaderCache
             IsDiscarded = tech.Desc.IsDiscarded;
             IsDismembered = tech.Desc.IsDismembered;
             IsPreskinned = tech.Desc.IsPreskinned;
+            VSHash = tech.VertexShader?.Hash ?? null;
+            PSHash = tech.PixelShader?.Hash ?? null;
 
             // Similar to how the VFID is used in the cache file itself,
             // but ordered in a way that enables useful sorting.
