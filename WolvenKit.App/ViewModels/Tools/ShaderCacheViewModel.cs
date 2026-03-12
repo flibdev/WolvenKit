@@ -337,7 +337,7 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
         {
             ExportFormats.Raw_DXIL => "dxil",
             ExportFormats.Dis_DXIL => "ll",
-            ExportFormats.Raw_SPIRV => "spirv",
+            ExportFormats.Dis_SPIRV => "spirv",
             ExportFormats.Dec_HLSL => "hlsl",
             _ => "dat",
         };
@@ -421,6 +421,9 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
                                 break;
                             case ExportFormats.Dis_DXIL:
                                 dxil.ExportDisassembled(bytecode, filepath);
+                                break;
+                            case ExportFormats.Dis_SPIRV:
+                                dxil.ExportSPIRV(bytecode, filepath);
                                 break;
                             default:
                                 _log.Error($"Unsupported format {export.ExportFormat} for technique '{filename}'");

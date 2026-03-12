@@ -22,7 +22,7 @@ public enum ExportFormats
     [Display(Description = "Disassembled DXIL")]
     Dis_DXIL,
     [Display(Description = "Converted SPIR-V bitcode")]
-    Raw_SPIRV,
+    Dis_SPIRV,
     [Display(Description = "Decompiled HLSL via SPIR-V")]
     Dec_HLSL
 }

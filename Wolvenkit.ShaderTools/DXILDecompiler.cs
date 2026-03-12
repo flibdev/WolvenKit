@@ -41,6 +41,12 @@ public class DXILDecompiler : IDisposable
         ThrowIfError(DXD_API.DXC_ExportDisassembled(_handle, buffer, (ulong)buffer.Length, filepath));
     }
 
+    public void ExportSPIRV(Span<byte> buffer, string filepath)
+    {
+        ThrowIfError(DXD_API.SPV_ExportSPIRV(_handle, buffer, (ulong)buffer.Length, filepath));
+    }
+
+
     #region IDisposable
 
     private bool _isDisposed = false;
@@ -62,10 +68,10 @@ public class DXILDecompiler : IDisposable
         {
             if (disposing)
             {
-                // TODO: dispose managed state (managed objects)
+                // dispose managed state (managed objects)
             }
 
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+            // free unmanaged resources (unmanaged objects) and override finalizer
             if (_handle != IntPtr.Zero)
             {
                 var res = DXD_API.ReleaseHandle(_handle);
@@ -76,7 +82,6 @@ public class DXILDecompiler : IDisposable
                 }
             }
 
-            // TODO: set large fields to null
             _isDisposed = true;
         }
     }

@@ -9,11 +9,15 @@
 
   <ItemGroup>
     <None Remove="lib\dxcompiler.dll" />
+    <None Remove="lib\dxil-spirv-c-shared.dll" />
     <None Remove="lib\DXILDecompiler.dll" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="lib\dxcompiler.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\dxil-spirv-c-shared.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="lib\DXILDecompiler.dll">

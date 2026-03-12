@@ -24,4 +24,7 @@ internal static unsafe partial class DXD_API
 
     [LibraryImport(LibraryPath, EntryPoint = "dxd_dxc_export_disassembled")]
     public static partial uint DXC_ExportDisassembled(IntPtr handle, Span<byte> data, ulong size, [MarshalAs(UnmanagedType.LPStr)] string filename);
+
+    [LibraryImport(LibraryPath, EntryPoint = "dxd_spv_export_spirv")]
+    public static partial uint SPV_ExportSPIRV(IntPtr handle, Span<byte> data, ulong size, [MarshalAs(UnmanagedType.LPStr)] string filename);
 }
