@@ -71,8 +71,10 @@ public partial class ExportShaderTechniquesDialogViewModel : DialogViewModel
         ShaderTypeList = [.. Enum.GetValues<ShaderTypes>()];
 
         FilenameTemplateList = [
-            "{Material}_{SortID}_{VF}_{Type}{Flags}",
-            "{VertexFactory}{Flags}_{Material}_{Type}"
+            "{Material}_{SortID}_{VF}_{Pass}{Flags}_{Type}",
+            "{VF}_{SortID}_{Material}_{Pass}{Flags}_{Type}",
+            "{Material}/{SortID}_{VF}_{Pass}{Flags}_{Type}",
+            "{VF}/{SortID}_{Material}_{Pass}{Flags}_{Type}"
         ];
         FilenameTemplate = FilenameTemplateList[0];
     }

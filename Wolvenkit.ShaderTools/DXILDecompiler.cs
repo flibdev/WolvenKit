@@ -5,23 +5,81 @@ using System.Text;
 namespace WolvenKit.ShaderTools;
 
 
-public static unsafe partial class DXILDecompiler
+public class DXILDecompiler : IDisposable
 {
-    private const string s_library = "lib/DXILDecompiler.dll";
+    private const string s_dxCompilerPath = "lib/dxcompiler.dll";
+    private const uint s_success = 0;
 
-    public const uint SUCCESS = 0;
+    private IntPtr _handle = IntPtr.Zero;
 
-    [LibraryImport(s_library, EntryPoint = "dxd_get_error_string")]
-    private static partial void GetErrorStringImpl(uint id, Span<byte> buffer, ulong size);
 
     public static string GetErrorString(uint id)
     {
-        // impl requires a minimum of 40 byte buffer
+        // impl requires a minimum of 64 byte buffer
         Span<byte> buffer = stackalloc byte[64];
-        GetErrorStringImpl(id, buffer, (ulong)buffer.Length);
+        DXD_API.GetErrorString(id, buffer, (ulong)buffer.Length);
         return Encoding.UTF8.GetString(buffer);
     }
 
-    [LibraryImport(s_library, EntryPoint = "dxd_export_disassembled")]
-    public static partial uint ExportDisassembled(Span<byte> data, ulong size, [MarshalAs(UnmanagedType.LPStr)] string filename);
+    private static void ThrowIfError(uint id)
+    {
+        if (id != s_success)
+        {
+            throw new Exception($"DXILDecompiler Error: {GetErrorString(id)}");
+        }
+    }
+
+    public DXILDecompiler()
+    {
+        _handle = DXD_API.CreateHandle();
+
+        ThrowIfError(DXD_API.DXC_Initialize(_handle, s_dxCompilerPath));
+    }
+
+    public void ExportDisassembled(Span<byte> buffer, string filepath)
+    {
+        ThrowIfError(DXD_API.DXC_ExportDisassembled(_handle, buffer, (ulong)buffer.Length, filepath));
+    }
+
+    #region IDisposable
+
+    private bool _isDisposed = false;
+
+    ~DXILDecompiler()
+    {
+        Dispose(disposing: false);
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_isDisposed)
+        {
+            if (disposing)
+            {
+                // TODO: dispose managed state (managed objects)
+            }
+
+            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+            if (_handle != IntPtr.Zero)
+            {
+                var res = DXD_API.ReleaseHandle(_handle);
+                if (res != s_success)
+                {
+                    // This shouldn't ever happen
+                    throw new Exception($"Error releasing handle: {GetErrorString(res)}");
+                }
+            }
+
+            // TODO: set large fields to null
+            _isDisposed = true;
+        }
+    }
+
+    #endregion
 }

@@ -345,7 +345,7 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
 
     private static string TransformFilenameTemplate(string template, MaterialTechniqueViewModel vm, bool isPixelShader)
     {
-        template = template.Replace("{SortID}", $"{vm.CompositeSort:X8}");
+        template = template.Replace("{SortID}", $"{vm.CompositeSort:X7}");
         template = template.Replace("{Material}", vm.MatName);
         template = template.Replace("{Index}", $"{vm.Index}");
         template = template.Replace("{PassIndex}", $"{vm.PassIndex}");
@@ -378,13 +378,7 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
         if (string.IsNullOrEmpty(export.FilenameTemplate) || string.IsNullOrEmpty(export.Folder))
         { return; }
 
-        // Ensure folder exists (this 
-        var folderInfo = Directory.CreateDirectory(export.Folder);
-        if (folderInfo == null)
-        {
-            _log.Error($"Somehow failed to get directory info for path '{export.Folder}'");
-            return;
-        }
+        using var dxil = new DXILDecompiler();        
 
         _log.Info($"Saving {selected.Count} techs");
 
@@ -396,12 +390,12 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
             {
                 if (IsShaderType(export.ShaderType.Value, shaderType))
                 {
-                    var isVS = shaderType == ShaderTypes.Vertex;
+                    var isPS = shaderType == ShaderTypes.Pixel;
 
-                    var filename = TransformFilenameTemplate(export.FilenameTemplate, technique, isVS);
-                    var filepath = Path.Combine(folderInfo.FullName, $"{filename}.{extension}");
+                    var filename = TransformFilenameTemplate(export.FilenameTemplate, technique, isPS);
+                    var filepath = Path.Combine(export.Folder, $"{filename}.{extension}");
 
-                    var shaderHash = isVS ? technique.VSHash : technique.PSHash;
+                    var shaderHash = isPS ? technique.PSHash : technique.VSHash;
                     if (shaderHash == null)
                     {
                         _log.Warning($"No defined {shaderType} for technique '{filename}'");
@@ -417,21 +411,25 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
 
                     var bytecode = _shaderCacheService.GetShaderBytecode(shader);
 
-                    switch (export.ExportFormat)
+                    // DXILDecompiler throws on any errors
+                    try
                     {
-                        case ExportFormats.Raw_DXIL:
-                            File.WriteAllBytes(filepath, bytecode);
-                            break;
-                        case ExportFormats.Dis_DXIL:
-                            var err = DXILDecompiler.ExportDisassembled(bytecode, (uint)bytecode.Length, filepath);
-                            if (err != DXILDecompiler.SUCCESS)
-                            {
-                                _log.Error($"Error: {DXILDecompiler.GetErrorString(err)}");
-                            }
-                            break;
-                        default:
-                            _log.Error($"Unsupported format {export.ExportFormat} for technique '{filename}'");
-                            break;
+                        switch (export.ExportFormat)
+                        {
+                            case ExportFormats.Raw_DXIL:
+                                File.WriteAllBytes(filepath, bytecode);
+                                break;
+                            case ExportFormats.Dis_DXIL:
+                                dxil.ExportDisassembled(bytecode, filepath);
+                                break;
+                            default:
+                                _log.Error($"Unsupported format {export.ExportFormat} for technique '{filename}'");
+                                break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Error($"Error exporting: {ex.Message}");
                     }
                 }
             }

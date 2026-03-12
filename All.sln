@@ -50,7 +50,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WolvenKit.RED4", "WolvenKit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WolvenKit.Unpacker", "WolvenKit.Unpacker\WolvenKit.Unpacker.csproj", "{A0FD2057-AA63-47F2-BE69-BF55455F02CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wolvenkit.ShaderTools", "Wolvenkit.ShaderTools\Wolvenkit.ShaderTools.csproj", "{D9F8B824-E2BB-4E2B-B971-30ADCD28D223}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WolvenKit.ShaderTools", "Wolvenkit.ShaderTools\WolvenKit.ShaderTools.csproj", "{D9F8B824-E2BB-4E2B-B971-30ADCD28D223}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
