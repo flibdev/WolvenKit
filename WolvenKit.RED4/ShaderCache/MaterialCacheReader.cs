@@ -28,7 +28,7 @@ public class MaterialCacheReader : ICacheReader
 
     public ICache ReadFile()
     {
-        _reader.BaseStream.Seek(-0x70, SeekOrigin.End);
+        _reader.BaseStream.Seek(-FooterBlock.Size, SeekOrigin.End);
         var footer = _reader.BaseStream.ReadStruct<FooterBlock>();
 
         if (footer.Magic != s_magic)

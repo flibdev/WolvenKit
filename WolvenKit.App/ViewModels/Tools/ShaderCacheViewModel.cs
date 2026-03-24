@@ -23,6 +23,7 @@ using WolvenKit.Core.Extensions;
 using WolvenKit.Core.Interfaces;
 using WolvenKit.RED4.ShaderCache.Common;
 using WolvenKit.RED4.ShaderCache.Dynamic;
+using WolvenKit.RED4.ShaderCache.Static;
 using WolvenKit.RED4.Types;
 using WolvenKit.ShaderTools;
 using static WolvenKit.RED4.Types.Enums;
@@ -30,12 +31,12 @@ using Material = WolvenKit.RED4.ShaderCache.Dynamic.Material;
 
 namespace WolvenKit.App.ViewModels.Tools;
 
-public class CacheMaterialKey
+public class CacheKey
 {
     public string Name { get; set; }
     public uint Hash { get; set; }
 
-    public CacheMaterialKey(string name, uint hash) {  Name = name; Hash = hash; }
+    public CacheKey(string name, uint hash) {  Name = name; Hash = hash; }
 }
 
 public partial class ShaderCacheViewModel : FloatingPaneViewModel
@@ -62,9 +63,9 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
 
     [ObservableProperty] private CacheMetadata? _cacheMetadata = null;
 
-    [ObservableProperty] private List<CacheMaterialKey> _materials = [];
+    [ObservableProperty] private List<CacheKey> _materials = [];
     [ObservableProperty] private string _materialCount = "Materials";
-    [ObservableProperty] private CacheMaterialKey? _selectedMaterialKey = null;
+    [ObservableProperty] private CacheKey? _selectedMaterialKey = null;
     [ObservableProperty] private Material? _selectedMaterial = null;
     [ObservableProperty] private MaterialViewModel? _selectedMaterialVM = null;
 
@@ -72,6 +73,12 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
     [ObservableProperty] private ObservableCollection<object>? _selectedTechniques = [];
 
     [ObservableProperty] private string _techniqueCount = "Techniques";
+
+
+    [ObservableProperty] private List<CacheKey> _passes = [];
+    [ObservableProperty] private CacheKey? _selectedPassKey = null;
+    [ObservableProperty] private Pass? _selectedPass = null;
+    [ObservableProperty] private StaticPassViewModel? _selectedPassVM = null;
 
 
     private readonly ISettingsManager _settingsManager;
@@ -99,7 +106,20 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
     private void ClearLoadedCache()
     {
         CacheMetadata = null;
+
         Materials?.Clear();
+        SelectedMaterialKey = null;
+        SelectedMaterial = null;
+        SelectedMaterialVM = null;
+
+        Techniques?.Clear();
+        SelectedTechniques = null;
+
+        Passes?.Clear();
+        SelectedPassKey = null;
+        SelectedPass = null;
+        SelectedPassVM = null;
+
         IsLoaded = false;
         StatusStr = "No Cache File Loaded";
     }
@@ -135,7 +155,7 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
             return;
         }
 
-        if (!loadArgs.Success)
+        if (!loadArgs.Success || loadArgs.Cache == null)
         {
             StatusStr = $"Could not load: {loadArgs.Reason}";
             _log.Error($"Could not load shader cache file: {loadArgs.Reason}");
@@ -144,31 +164,43 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
 
         _log.Success($"Loaded shader cache.");
 
-        var cache = loadArgs.Cache as MaterialCache;
-        if (cache != null)
+        CacheMetadata = loadArgs.Cache.Metadata;
+
+        if (loadArgs.Cache is MaterialCache matCache)
         {
-            IsLoaded = true;
             IsDynamicCache = true;
-            CacheMetadata = cache.Metadata;
 
             // do stuff
-            Materials = cache.Materials
-                .Select(kvp => new CacheMaterialKey(kvp.Value.Name, kvp.Key))
+            Materials = matCache.Materials
+                .Select(kvp => new CacheKey(kvp.Value.Name, kvp.Key))
                 .OrderBy(mk => mk.Name)
                 .ToList();
 
             MaterialCount = $"Materials ({Materials.Count})";
 
-            Techniques = cache.Materials
+            Techniques = matCache.Materials
                 .SelectMany(kvp =>
                     kvp.Value.Techniques.Select(
                         t => new MaterialTechniqueViewModel(kvp.Value.Name, t)
-                    )                    
+                    )
                 )
                 .OrderBy(mt => mt.MatName)
                 .ThenBy(mt => mt.CompositeSort)
                 .ToList();
             TechniqueCount = $"Techniques ({Techniques.Count})";
+
+            IsLoaded = true;
+        }
+        else if (loadArgs.Cache is StaticCache staticCache)
+        {
+            IsDynamicCache = false;
+
+            Passes = staticCache.Passes
+                .Select(kvp => new CacheKey(kvp.Value.Name, kvp.Key))
+                .OrderBy(pk => pk.Name)
+                .ToList();
+
+            IsLoaded = true;
         }
 
     }
@@ -179,7 +211,7 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
         SelectedMaterial = cache?.Materials[hash];
     }
 
-    partial void OnSelectedMaterialKeyChanged(CacheMaterialKey? value)
+    partial void OnSelectedMaterialKeyChanged(CacheKey? value)
     {
         SelectedMaterialVM = null;
 
@@ -203,6 +235,30 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
                         .Select(t => new MaterialTechniqueViewModel(material.Name, t))
                         .OrderBy(mt => mt.CompositeSort)
                         .ToList()
+                };
+            }
+        }
+    }
+
+    private static string Hash2String(ulong hash) => hash > 0 ? hash.ToString("X16") : string.Empty;
+
+    partial void OnSelectedPassKeyChanged(CacheKey? value)
+    {
+        SelectedPassVM = null;
+
+        if (value != null)
+        {
+            var cache = _shaderCacheService.Cache as StaticCache;
+            if (cache != null && cache.Passes.TryGetValue(value.Hash, out var pass))
+            {
+                SelectedPassVM = new StaticPassViewModel
+                {
+                    Hash = value.Hash.ToString("X8"),
+                    Name = pass.Name,
+                    HashVertex = Hash2String(pass.HashVertex),
+                    HashPixel = Hash2String(pass.HashPixel),
+                    HashCompute = Hash2String(pass.HashCompute),
+                    HashRaytrace = Hash2String(pass.HashRaytrace),
                 };
             }
         }
@@ -424,6 +480,10 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
                                 break;
                             case ExportFormats.Dis_SPIRV:
                                 dxil.ExportSPIRV(bytecode, filepath);
+                                break;
+                            case ExportFormats.Dec_HLSL:
+                                // TODO: Pass more info first (VF, PS, etc)
+                                dxil.ExportHLSL(bytecode, filepath);
                                 break;
                             default:
                                 _log.Error($"Unsupported format {export.ExportFormat} for technique '{filename}'");

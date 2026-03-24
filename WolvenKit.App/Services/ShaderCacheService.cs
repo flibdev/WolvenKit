@@ -101,11 +101,9 @@ namespace WolvenKit.App.Services
                 {
                     cacheReader = new MaterialCacheReader(_reader);
                 }
-                else
+                else if (StaticCacheReader.IsSupportedFile(_reader))
                 {
-                    // Static shader reader
-
-
+                    cacheReader = new StaticCacheReader(_reader);
                 }
 
                 if (cacheReader != null)

@@ -7,50 +7,34 @@ namespace WolvenKit.RED4.ShaderCache.Dynamic;
 [StructLayout(LayoutKind.Explicit, Size = 0x70)]
 internal struct FooterBlock
 {
-    [FieldOffset(0x00)]
-    public uint ShaderCount;
-    [FieldOffset(0x04)]
-    public uint TechniqueCount;
-    [FieldOffset(0x08)]
-    public uint ParamCount;
+    public static readonly long Size = 0x70;
+
+    [FieldOffset(0x00)] public uint ShaderCount;
+    [FieldOffset(0x04)] public uint TechniqueCount;
+    [FieldOffset(0x08)] public uint ParamCount;
     // After the timestamp
-    [FieldOffset(0x1C)]
-    public uint IncludesCount;
+    [FieldOffset(0x1C)] public uint IncludesCount;
 
     // Some kind of hash or checksum, unused by the game
-    [FieldOffset(0x0C)]
-    public ulong UnusedHash;
+    [FieldOffset(0x0C)] public ulong UnusedHash;
 
-    [FieldOffset(0x14)]
-    public uint TimestampTime;
-    [FieldOffset(0x18)]
-    public uint TimestampDate;
+    [FieldOffset(0x14)] public uint TimestampTime;
+    [FieldOffset(0x18)] public uint TimestampDate;
 
-    [FieldOffset(0x20)]
-    public ulong ShaderBlockSize;
-    [FieldOffset(0x28)]
-    public ulong TechniqueBlockSize;
-    [FieldOffset(0x30)]
-    public ulong ParamBlockSize;
-    [FieldOffset(0x38)]
-    public ulong IncludesBlockSize;
-    [FieldOffset(0x40)]
-    public ulong TimestampBlockSize;
+    [FieldOffset(0x20)] public ulong ShaderBlockSize;
+    [FieldOffset(0x28)] public ulong TechniqueBlockSize;
+    [FieldOffset(0x30)] public ulong ParamBlockSize;
+    [FieldOffset(0x38)] public ulong IncludesBlockSize;
+    [FieldOffset(0x40)] public ulong TimestampBlockSize;
 
-    [FieldOffset(0x48)]
-    public long OffsetToTechniques;
-    [FieldOffset(0x50)]
-    public long OffsetToParams;
+    [FieldOffset(0x48)] public long OffsetToTechniques;
+    [FieldOffset(0x50)] public long OffsetToParams;
     // These two are stored in reverse order of the block sizes
-    [FieldOffset(0x58)]
-    public long OffsetToTimestamps;
-    [FieldOffset(0x60)]
-    public long OffsetToIncludes;
+    [FieldOffset(0x58)] public long OffsetToTimestamps;
+    [FieldOffset(0x60)] public long OffsetToIncludes;
 
-    [FieldOffset(0x68)]
-    public uint Magic;
-    [FieldOffset(0x6C)]
-    public uint Version;
+    [FieldOffset(0x68)] public uint Magic;
+    [FieldOffset(0x6C)] public uint Version;
 }
 
 
@@ -94,35 +78,24 @@ internal struct ShaderParams
 [StructLayout(LayoutKind.Explicit, Size = 0x10)]
 internal struct MaterialTimestamp
 {
-    [FieldOffset(0x0)]
-    public ulong Hash;
-    [FieldOffset(0x8)]
-    public uint TimestampTime;
-    [FieldOffset(0xC)]
-    public uint TimestampDate;
+    [FieldOffset(0x0)] public ulong Hash;
+    [FieldOffset(0x8)] public uint TimestampTime;
+    [FieldOffset(0xC)] public uint TimestampDate;
 }
 
 [StructLayout(LayoutKind.Explicit, Size = 0x08)]
-internal struct SamplerState
+internal struct SamplerState : IPackedStruct<SamplerStateInfo>
 {
-    [FieldOffset(0x0)]
-    public byte FilteringMin;
-    [FieldOffset(0x1)]
-    public byte FilteringMag;
-    [FieldOffset(0x2)]
-    public byte FilteringMip;
-    [FieldOffset(0x3)]
-    public byte AddressU;
-    [FieldOffset(0x4)]
-    public byte AddressV;
-    [FieldOffset(0x5)]
-    public byte AddressW;
-    [FieldOffset(0x6)]
-    public byte ComparisonFunc;
-    [FieldOffset(0x7)]
-    public byte Register;
+    [FieldOffset(0x0)] public byte FilteringMin;
+    [FieldOffset(0x1)] public byte FilteringMag;
+    [FieldOffset(0x2)] public byte FilteringMip;
+    [FieldOffset(0x3)] public byte AddressU;
+    [FieldOffset(0x4)] public byte AddressV;
+    [FieldOffset(0x5)] public byte AddressW;
+    [FieldOffset(0x6)] public byte ComparisonFunc;
+    [FieldOffset(0x7)] public byte Register;
 
-    public SamplerStateInfo ToREDClass()
+    public readonly SamplerStateInfo ToREDClass()
     {
         return new SamplerStateInfo
         {

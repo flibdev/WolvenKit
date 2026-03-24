@@ -206,9 +206,10 @@
             ██████╔╝   ██║   ██║ ╚████║██║  ██║██║ ╚═╝ ██║██║╚██████╗    ╚██████╗██║  ██║╚██████╗██║  ██║███████╗
             ╚═════╝    ╚═╝   ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝ ╚═════╝     ╚═════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝
             -->
+            <!-- Visibility="{Binding Path=IsDynamicCache, Converter={StaticResource BooleanVisibilityConverter}}" -->
             <sf:TabControlExt
                 Grid.Row="1"
-                Visibility="{Binding Path=IsDynamicCache, Converter={StaticResource BooleanVisibilityConverter}}"
+                Visibility="Hidden"
                 Margin="0"
                 Padding="0"
                 Style="{StaticResource WolvenKitTabControl}"
@@ -484,16 +485,135 @@
             ███████║   ██║   ██║  ██║   ██║   ██║╚██████╗    ╚██████╗██║  ██║╚██████╗██║  ██║███████╗
             ╚══════╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝   ╚═╝ ╚═════╝     ╚═════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝
             -->
-            <!--<Grid
+            <Grid
                 Grid.Row="1"
                 Visibility="{Binding Path=IsDynamicCache, Converter={StaticResource InvertBooleanVisibilityConverter}}"
+                d:Visibility="Visible"
                 >
+
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="{DynamicResource WolvenKitShaderCacheTabColumnWidth}" />
                     <ColumnDefinition Width="{DynamicResource WolvenKitColumnTiny}" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-            </Grid>-->
+
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+
+                    <sf:SfAccordion Grid.Row="0" SelectionMode="ZeroOrMore">
+                        <sf:SfAccordionItem Header="Metadata">
+                            <sf:SfDataGrid
+                                HeaderRowHeight="{DynamicResource WolvenKitTreeGridRowHeaderHeight}"
+                                RowHeight="{DynamicResource WolvenKitTreeGridRowHeight}"
+                                BorderThickness="0"
+                                AllowEditing="False"
+                                AllowFiltering="False"
+                                AllowResizingColumns="True"
+                                AllowSorting="False"
+                                AutoGenerateColumns="False"
+                                ColumnSizer="Star"
+                                IsReadOnly="True"
+                                ItemsSource="{Binding CacheMetadata.Chunks}">
+                                <sf:SfDataGrid.Columns>
+                                    <sf:GridTextColumn HeaderText="Chunk" MappingName="Type" />
+                                    <sf:GridNumericColumn HeaderText="Count" MappingName="Count" NumberDecimalDigits="0" />
+                                    <sf:GridNumericColumn HeaderText="Size" MappingName="Size" NumberDecimalDigits="0" />
+                                </sf:SfDataGrid.Columns>
+                            </sf:SfDataGrid>
+                        </sf:SfAccordionItem>
+                    </sf:SfAccordion>
+
+                    <sf:SfDataGrid
+                        Grid.Row="1"
+                        HeaderRowHeight="{DynamicResource WolvenKitTreeGridRowHeaderHeight}"
+                        RowHeight="{DynamicResource WolvenKitTreeGridRowHeight}"
+                        BorderThickness="0"
+                        AllowEditing="False"
+                        AllowFiltering="True"
+                        AllowResizingColumns="True"
+                        AllowSorting="True"
+                        AutoGenerateColumns="False"
+                        ColumnSizer="Star"
+                        IsReadOnly="True"
+                        ItemsSource="{Binding Passes}"
+                        SelectionUnit="Row"
+                        SelectionMode="Single"
+                        SelectedItem="{Binding SelectedPassKey}"
+                        >   
+                        <sf:SfDataGrid.Columns>
+                            <sf:GridTextColumn HeaderText="Passes" MappingName="Name" />
+                        </sf:SfDataGrid.Columns>
+                    </sf:SfDataGrid>
+
+                </Grid>
+
+                <sf:SfGridSplitter
+                    Grid.Column="1"
+                    HorizontalAlignment="Stretch" />
+
+
+                <Grid Grid.Column="2"
+                    Visibility="{Binding SelectedPassVM, Converter={StaticResource NullVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="{StaticResource WolvenKitShaderCacheGridSpacing}" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Border
+                        Grid.Row="0"
+                        Style="{StaticResource MaterialName}"
+                        >
+                        <TextBlock
+                            Style="{StaticResource MaterialNameTextBlock}"
+                            Text="{Binding SelectedPassVM.Name, FallbackValue='Pass Name'}"
+                            />
+                    </Border>
+
+                    <Menu Grid.Row="1">
+                        <MenuItem
+                            Style="{StaticResource MenuItemStyle}"
+                            Header="Export Pass Shaders"
+                            >
+                            <MenuItem.Icon>
+                                <templates:IconBox
+                                    IconPack="Material"
+                                    Kind="Export"
+                                    Margin="{DynamicResource WolvenKitMarginTiny}"
+                                    Size="{DynamicResource WolvenKitIconTiny}"
+                                    Foreground="{StaticResource WolvenKitCyan}" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </Menu>
+
+                    <sf:PropertyGrid
+                        Grid.Row="2"
+                        BorderThickness="0"
+                        ButtonPanelVisibility="Collapsed"
+                        SearchBoxVisibility="Collapsed"
+                        SortDirection="{x:Null}"
+                        AutoGenerateItems="False"
+                        SelectedObject="{Binding SelectedPassVM, Mode=OneWay}">
+                        <sf:PropertyGrid.Items>
+                            <sf:PropertyGridItem PropertyName="Hash" />
+                            <sf:PropertyGridItem PropertyName="HashVertex" DisplayName="Vertex Shader" />
+                            <sf:PropertyGridItem PropertyName="HashPixel" DisplayName="Pixel Shader" />
+                            <sf:PropertyGridItem PropertyName="HashCompute" DisplayName="Compute Shader" />
+                            <sf:PropertyGridItem PropertyName="HashRaytrace" DisplayName="Raytrace Shader" />
+                        </sf:PropertyGrid.Items>
+                    </sf:PropertyGrid>
+
+                    
+
+                </Grid>
+
+            </Grid>
         </Grid>
     </Grid>
 </reactiveUi:ReactiveUserControl>

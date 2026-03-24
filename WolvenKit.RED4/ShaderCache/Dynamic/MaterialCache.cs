@@ -6,7 +6,7 @@ namespace WolvenKit.RED4.ShaderCache.Dynamic;
 public class MaterialCache : ICache
 {
     public ICache.CacheType Type => ICache.CacheType.Dynamic;
-    public CacheMetadata Metadata => _metadata;
+    public CacheMetadata Metadata { get; }
 
     public Dictionary<ulong, Shader> Shaders { get; private set; }
     public Dictionary<uint, Material> Materials { get; private set; }
@@ -15,8 +15,6 @@ public class MaterialCache : ICache
     {
         Shaders = shaders;
         Materials = materials;
-        _metadata = metadata;
+        Metadata = metadata;
     }
-
-    private readonly CacheMetadata _metadata;
 }
