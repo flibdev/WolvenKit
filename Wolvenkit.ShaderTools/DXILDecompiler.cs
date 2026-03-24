@@ -46,6 +46,11 @@ public class DXILDecompiler : IDisposable
         ThrowIfError(DXD_API.SPV_ExportSPIRV(_handle, buffer, (ulong)buffer.Length, filepath));
     }
 
+    public void ExportHLSL(Span<byte> buffer, string filepath)
+    {
+        ThrowIfError(DXD_API.SPV_ExportHLSL(_handle, buffer, (ulong)buffer.Length, filepath));
+    }
+
 
     #region IDisposable
 
