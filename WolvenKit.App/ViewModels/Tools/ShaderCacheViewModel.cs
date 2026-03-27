@@ -13,6 +13,7 @@ using HelixToolkit.SharpDX.Core;
 using SharpDX;
 using Splat.ModeDetection;
 using WolvenKit.App.Extensions;
+using WolvenKit.App.Factories;
 using WolvenKit.App.Interaction;
 using WolvenKit.App.Models;
 using WolvenKit.App.Services;
@@ -79,12 +80,14 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
     [ObservableProperty] private CacheKey? _selectedPassKey = null;
     [ObservableProperty] private Pass? _selectedPass = null;
     [ObservableProperty] private StaticPassViewModel? _selectedPassVM = null;
+    [ObservableProperty] private ChunkViewModel? _selectedPassChunk = null;
 
 
     private readonly ISettingsManager _settingsManager;
     private readonly IShaderCacheService _shaderCacheService;
     private readonly IAppArchiveManager _appArchiveManager;
     private readonly AppViewModel _appViewModel;
+    private readonly IChunkViewmodelFactory _chunkVMFactory;
     private readonly ILoggerService _log;
 
     public ShaderCacheViewModel(
@@ -92,6 +95,7 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
         IShaderCacheService shaderCacheService,
         IAppArchiveManager appArchiveManager,
         AppViewModel appViewModel,
+        IChunkViewmodelFactory chunkVMFactory,
         ILoggerService loggerService
         ) : base(ToolTitle, ToolContentId)
     {
@@ -99,6 +103,7 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
         _shaderCacheService = shaderCacheService;
         _appArchiveManager = appArchiveManager;
         _appViewModel = appViewModel;
+        _chunkVMFactory = chunkVMFactory;
         _log = loggerService;
     }
 
@@ -251,6 +256,9 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
             var cache = _shaderCacheService.Cache as StaticCache;
             if (cache != null && cache.Passes.TryGetValue(value.Hash, out var pass))
             {
+                var somStateVM = _chunkVMFactory.ChunkViewModel(pass.SOMState, nameof(SOMState), _appViewModel, parent: null, isReadOnly: true);
+                somStateVM.IsExpanded = true;
+
                 SelectedPassVM = new StaticPassViewModel
                 {
                     Hash = value.Hash.ToString("X8"),
@@ -259,7 +267,14 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
                     HashPixel = Hash2String(pass.HashPixel),
                     HashCompute = Hash2String(pass.HashCompute),
                     HashRaytrace = Hash2String(pass.HashRaytrace),
+                    InputLayouts = string.Join("\n", pass.InputLayouts),
+                    RenderTargets = pass.RenderTargets.Count > 0
+                        ? pass.RenderTargets.Select(r => RenderTarget.FromRTSetup(r)).ToList()
+                        : null,
+                    SOMStateVM = [somStateVM]
                 };
+
+                
             }
         }
     }
@@ -282,7 +297,7 @@ public partial class ShaderCacheViewModel : FloatingPaneViewModel
         }
     }
 
-    private bool HasFeatFlag(FeatureFlagsMask val, EFeatureFlagMask flag) => ((ulong)val.Flags & (ulong)flag) != 0;
+    private static bool HasFeatFlag(FeatureFlagsMask val, EFeatureFlagMask flag) => ((ulong)val.Flags & (ulong)flag) != 0;
 
     [RelayCommand]
     private void CalculateShaderTechniques()

@@ -19,5 +19,5 @@ public class Pass
 
     public required SOMState SOMState;
     public List<RenderTargetSetup> RenderTargets = [];
-    public List<string> InputLayouts = [];
+    public List<Enums.StaticShaderInputLayout> InputLayouts = [];
 }

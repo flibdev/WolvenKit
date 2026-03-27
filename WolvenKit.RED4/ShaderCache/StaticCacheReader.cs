@@ -151,7 +151,9 @@ public class StaticCacheReader : ICacheReader
         var ilCount = _reader.ReadUInt32();
         for (var i = 0; i < ilCount; i++)
         {
-            pass.InputLayouts.Add(_reader.ReadLengthPrefixedString());
+            pass.InputLayouts.Add(
+                Enum.Parse<Enums.StaticShaderInputLayout>(_reader.ReadLengthPrefixedString())                
+            );
         }
 
         pass.Name = _reader.ReadLengthPrefixedString();

@@ -98,5 +98,5 @@ public class PaneViewModelFactory : IPaneViewModelFactory
 
     public HashToolViewModel HashToolViewModel() => new HashToolViewModel();
 
-    public ShaderCacheViewModel ShaderCacheViewModel(AppViewModel appViewModel) => new(_settingsManager, _shaderCacheService, _archiveManager, appViewModel, _loggerService);
+    public ShaderCacheViewModel ShaderCacheViewModel(AppViewModel appViewModel) => new(_settingsManager, _shaderCacheService, _archiveManager, appViewModel, _chunkViewmodelFactory, _loggerService);
 }
