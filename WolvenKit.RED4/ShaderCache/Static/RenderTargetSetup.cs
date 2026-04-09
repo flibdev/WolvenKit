@@ -9,5 +9,5 @@ namespace WolvenKit.RED4.ShaderCache.Static;
 public class RenderTargetSetup
 {
     public List<Enums.GpuWrapApieTextureFormat> RTFormats = [];
-    public Enums.GpuWrapApieTextureFormat DSFormat = Enums.GpuWrapApieTextureFormat.SomeMagicBullshit;
+    public Enums.GpuWrapApieTextureFormat DSFormat = Enums.GpuWrapApieTextureFormat.TEXFMT_NULL;
 }

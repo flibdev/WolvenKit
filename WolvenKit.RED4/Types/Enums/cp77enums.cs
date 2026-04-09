@@ -4618,7 +4618,8 @@ public static partial class Enums
 		TEXFMT_R16G16_Sint = 45,
 		TEXFMT_R16G16_Snorm = 46,
 		TEXFMT_B5G6R5_Unorm = 47,
-        SomeMagicBullshit = 48,
+		// Missing from the RTTI, confirmed by fuzzo
+		TEXFMT_NULL = 48,
 		TEXFMT_A8 = 0,
 		TEXFMT_R8 = 1,
 		TEXFMT_L8 = 2,

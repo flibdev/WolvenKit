@@ -41,7 +41,7 @@ namespace WolvenKit.App.ViewModels.Tools.ShaderCache
             return new RenderTarget
             {
                 RTFormats = string.Join(", ", setup.RTFormats) ?? string.Empty,
-                DSFormat = setup.DSFormat == Enums.GpuWrapApieTextureFormat.SomeMagicBullshit
+                DSFormat = setup.DSFormat == Enums.GpuWrapApieTextureFormat.TEXFMT_NULL
                     ? "None"
                     : setup.DSFormat.ToString()
             };

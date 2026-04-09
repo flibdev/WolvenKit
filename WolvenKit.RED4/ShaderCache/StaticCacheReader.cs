@@ -143,7 +143,7 @@ public class StaticCacheReader : ICacheReader
             {
                 RTFormats = [.. rtFormats.Select(r => Enum.Parse<Enums.GpuWrapApieTextureFormat>(r))],
                 DSFormat = string.IsNullOrEmpty(dsFormat)
-                    ? Enums.GpuWrapApieTextureFormat.SomeMagicBullshit
+                    ? Enums.GpuWrapApieTextureFormat.TEXFMT_NULL
                     : Enum.Parse<Enums.GpuWrapApieTextureFormat>(dsFormat)
             });
         }
